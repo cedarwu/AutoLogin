@@ -28,6 +28,7 @@
         <receiver android:name=".WifiStateReceiver">
             <intent-filter >
                 <action android:name="android.net.wifi.STATE_CHANGE" />
+                <action android:name="com.cedar.autologin.unknownhostBroadcast" />
             </intent-filter>
         </receiver>
         

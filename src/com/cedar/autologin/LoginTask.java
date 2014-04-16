@@ -3,6 +3,7 @@ package com.cedar.autologin;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -26,6 +28,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	Context context;
 	String account;
 	String passwd;
+	int retrys = 0;
 	
 	public LoginTask(Context context) {
 
@@ -37,6 +40,22 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			if (params.length > 0) {
 				account = params[0].getName();
 				passwd = params[0].getValue();
+				if (account.equals("retrys")) {
+					try {
+						retrys = Integer.parseInt(passwd) + 1;
+					}
+					catch (NumberFormatException e) {
+						Log.d("autologin", "Integer.parseInt error "+ e.toString());
+						retrys = 0;
+					}
+					SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+					account = sp.getString("account", "");  
+					passwd = sp.getString("passwd", "");
+					if (account.equals("") || passwd.equals("")) {
+						Log.d("autologin", "account or passwd is empty");
+						return false;
+					}
+				}
 			} else {
 				SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
 				account = sp.getString("account", "");  
@@ -101,7 +120,21 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 				return true;
 			}
 
-		} catch (Exception e) {
+		} catch (UnknownHostException e) {
+			Log.d("autologin", "UnknownHostException retrys " + String.valueOf(retrys));
+			if (retrys < 5) {
+				String UNIQUE_STRING = "com.cedar.autologin.unknownhostBroadcast";
+				Intent intent = new Intent(UNIQUE_STRING);
+				intent.putExtra("retrys", String.valueOf(retrys));
+				context.sendBroadcast(intent);
+			} else {
+				Log.d("autologin", "UnknownHostException retrys too many times");
+				Toast.makeText(context.getApplicationContext(),
+						"sign into seu-wlan failed !", Toast.LENGTH_LONG)
+						.show();
+			}
+			return false;
+		}  catch (Exception e) {
 			Log.d("autologin", "Error in http connection " + e.toString());
 			return false;
 		} finally {
@@ -116,12 +149,6 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	}
 
 	public Boolean login() {
-		//EditText accountText = (EditText) findViewById(R.id.account_message);
-		//EditText passwdText = (EditText) findViewById(R.id.passwd_message);
-		//String account = accountText.getText().toString();
-		//String passwd = passwdText.getText().toString();
-		// Log.d("autologin", account + ":" + passwd);
-
 		try {
 			HttpClient client = new DefaultHttpClient();
 			URI website = new URI("https://w.seu.edu.cn/portal/login.php");

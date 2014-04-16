@@ -1,5 +1,7 @@
 package com.cedar.autologin;
 
+import org.apache.http.message.BasicNameValuePair;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -29,6 +31,11 @@ public class WifiStateReceiver extends BroadcastReceiver {
 					SystemClock.sleep(2000);
 				}
 			}
+		} else if (intent.getAction().equals("com.cedar.autologin.unknownhostBroadcast")) {
+			SystemClock.sleep(2000);
+			String retrys = intent.getStringExtra("retrys");
+			BasicNameValuePair retrysInfo = new BasicNameValuePair("retrys", retrys);
+			new LoginTask(context).execute(retrysInfo);
 		}
 
 	}
