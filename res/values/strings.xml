@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Auto Login</string>
+    <string name="app_name">AutoLogin</string>
     <string name="title_section1">Account</string>
     <string name="title_section2">Logs</string>
     <string name="action_settings">Settings</string>

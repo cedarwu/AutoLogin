@@ -257,7 +257,7 @@ public class MainActivity extends ActionBarActivity implements
 		String passwd = passwdText.getText().toString();
 		Log.d("autologin", ssid);
 		if (account.isEmpty() || passwd.isEmpty()) {
-			Toast.makeText(getApplicationContext(), "用户名或密码不能为空",
+			Toast.makeText(getApplicationContext(), "Account and password can not be empty !",
 					Toast.LENGTH_LONG).show();
 			return;
 		} else {
@@ -269,6 +269,8 @@ public class MainActivity extends ActionBarActivity implements
 				BasicNameValuePair userInfo = new BasicNameValuePair(account, passwd);
 				new LoginTask(getApplicationContext()).execute(userInfo);
 			}
+			Toast.makeText(getApplicationContext(), "You can exit now ~",
+					Toast.LENGTH_LONG).show();
 		}
 
 	}
