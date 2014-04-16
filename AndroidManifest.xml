@@ -25,9 +25,9 @@
             </intent-filter>
         </activity>
         
-        <receiver android:name="com.cedar.autologin.WifiStateReceiver">
+        <receiver android:name=".WifiStateReceiver">
             <intent-filter >
-                <action android:name="android.intent.action.NETWORK_STATE_CHANGED_ACTION"/>
+                <action android:name="android.net.wifi.STATE_CHANGE" />
             </intent-filter>
         </receiver>
         

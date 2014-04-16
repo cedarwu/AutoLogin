@@ -1,20 +1,7 @@
 package com.cedar.autologin;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.support.v7.app.ActionBarActivity;
@@ -23,18 +10,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.NetworkInfo;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -109,6 +92,10 @@ public class MainActivity extends ActionBarActivity implements
 
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
+		
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
+		
 		return true;
 	}
 
@@ -130,7 +117,7 @@ public class MainActivity extends ActionBarActivity implements
 		// When the given tab is selected, switch to the corresponding page in
 		// the ViewPager.
 		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-		if (tab.getPosition() == 1) {
+		if( tab.getPosition() == 1) {
 			imm.hideSoftInputFromWindow(
 					this.getCurrentFocus().getWindowToken(), 0);
 		}
@@ -219,9 +206,12 @@ public class MainActivity extends ActionBarActivity implements
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_main, container,
 					false);
-			// TextView textView = (TextView)
-			// rootView.findViewById(R.id.section_label);
-			// textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
+			EditText accountText = (EditText) rootView.findViewById(R.id.account_message);
+			EditText passwdText = (EditText) rootView.findViewById(R.id.passwd_message);
+
+			SharedPreferences sp = this.getActivity().getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+			accountText.setText(sp.getString("account", ""));  
+			passwdText.setText(sp.getString("passwd", ""));
 			return rootView;
 		}
 	}
@@ -270,12 +260,15 @@ public class MainActivity extends ActionBarActivity implements
 			Toast.makeText(getApplicationContext(), "用户名或密码不能为空",
 					Toast.LENGTH_LONG).show();
 			return;
-		} else if (getSSID().equals(ssid)) {
-			List<Object> params = new ArrayList<Object>();
-			params.add(getApplicationContext());
-			params.add(account);
-			params.add(passwd);
-			new LoginTask().execute(params);
+		} else {
+			Editor editor = getSharedPreferences("userInfo", Context.MODE_PRIVATE).edit();  
+            editor.putString("account", account);  
+            editor.putString("passwd",passwd);  
+            editor.commit();  
+			if (getSSID().equals(ssid)) {
+				BasicNameValuePair userInfo = new BasicNameValuePair(account, passwd);
+				new LoginTask(getApplicationContext()).execute(userInfo);
+			}
 		}
 
 	}

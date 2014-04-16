@@ -3,7 +3,6 @@ package com.cedar.autologin;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,23 +16,36 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.EditText;
 import android.widget.Toast;
 
 
-public class LoginTask extends AsyncTask<List<Object>, Integer, Boolean> {
+public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	Context context;
 	String account;
 	String passwd;
 	
-	protected Boolean doInBackground(List<Object>... params) {
+	public LoginTask(Context context) {
+
+	    this.context = context;
+	}
+	
+	protected Boolean doInBackground(BasicNameValuePair... params) {
 		if (!checkLogin()) {
-			List<Object> param = (ArrayList<Object>) params[0];
-			context = (Context) param.get(0);
-			account = (String) param.get(1);
-			passwd = (String) param.get(2);
+			if (params.length > 0) {
+				account = params[0].getName();
+				passwd = params[0].getValue();
+			} else {
+				SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+				account = sp.getString("account", "");  
+				passwd = sp.getString("passwd", "");
+				if (account.equals("") || passwd.equals("")) {
+					Log.d("autologin", "account or passwd is empty");
+					return false;
+				}
+			}
 			if (login()) {
 				Log.d("autologin", "login succeed");
 				return true;
