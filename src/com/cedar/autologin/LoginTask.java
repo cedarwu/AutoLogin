@@ -28,7 +28,8 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	String account;
 	String passwd;
 	int retrys = 0;
-	Boolean exceedFlag = false;
+	Boolean exceedError = false;
+	Boolean passwdError = false;
 	
 	public LoginTask(Context context) {
 
@@ -86,9 +87,13 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			Toast.makeText(context.getApplicationContext(),
 					"AutoLogin: sign into seu-wlan failed !", Toast.LENGTH_LONG)
 					.show();
-		} else if (exceedFlag) {
+		} else if (exceedError) {
 			Toast.makeText(context.getApplicationContext(),
 					"AutoLogin: 并发登录超过最大限制 !", Toast.LENGTH_LONG)
+					.show();
+		} else if (passwdError) {
+			Toast.makeText(context.getApplicationContext(),
+					"AutoLogin: 用户名密码错误 !", Toast.LENGTH_LONG)
 					.show();
 		}
 	}
@@ -144,7 +149,10 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 					return true;
 				} else if (responseStr.contains("\\u5e76\\u53d1\\u767b\\u5f55\\u8d85\\u8fc7\\u6700\\u5927\\u9650\\u5236")) {
 					Log.d("autologin", "error: \u5e76\u53d1\u767b\u5f55\u8d85\u8fc7\u6700\u5927\u9650\u5236");
-					exceedFlag = true;
+					exceedError = true;
+				} else if (responseStr.contains("\\u7528\\u6237\\u540d\\u5bc6\\u7801\\u9519\\u8bef")) {
+					Log.d("autologin", "error: \u7528\u6237\u540d\u5bc6\u7801\u9519\u8bef");
+					passwdError = true;
 				}
 				return false;
 			} else {
