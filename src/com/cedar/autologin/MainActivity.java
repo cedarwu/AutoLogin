@@ -29,6 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -246,11 +247,10 @@ public class MainActivity extends ActionBarActivity implements
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_log, container,
-					false);
-			TextView textView = (TextView) rootView.findViewById(R.id.date_label);
+			View rootView = inflater.inflate(R.layout.fragment_log, container, false);
+			Button button = (Button) rootView.findViewById(R.id.button_changeDate);
 			String dateStamp = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(Calendar.getInstance().getTime());
-			textView.setText(dateStamp);
+			button.setText(dateStamp);
 			return rootView;
 		}
 	}
@@ -271,6 +271,14 @@ public class MainActivity extends ActionBarActivity implements
 		}
 
 		public void onDateSet(DatePicker view, int year, int month, int day) {
+			//LayoutInflater inflater = getLayoutInflater();
+
+			//final View textEntryView = factory.inflate(R.layout.landmark_new_dialog, null);
+
+			//View rootView = inflater.inflate(R.layout.fragment_log, container, false);
+			//Button button = (Button) rootView.findViewById(R.id.button_changeDate);
+			//String dateStamp = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(Calendar.getInstance().getTime());
+			//button.setText(dateStamp);
 			Log.d("autologin", ("DatePickered" + String.valueOf(year) + String.valueOf(month) + String.valueOf(day)));
 		}
 	}
