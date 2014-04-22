@@ -24,18 +24,18 @@ public class WifiStateReceiver extends BroadcastReceiver {
 				WifiInfo wifiInfo = wifi_service.getConnectionInfo();
 				if (wifiInfo.getSSID().equals(ssid)) {
 					Log.d("autologin", "wifi connected " + wifiInfo.getSSID());
-					Log.d("autologin", "wifiInfo.getIpAddress() " + wifiInfo.getIpAddress());
-					if (wifiInfo.getIpAddress() < 0)
-						SystemClock.sleep(1000);
 					new LoginTask(context).execute();
-					SystemClock.sleep(2000);
 				}
 			}
 		} else if (intent.getAction().equals("com.cedar.autologin.unknownhostBroadcast")) {
-			SystemClock.sleep(2000);
-			String retrys = intent.getStringExtra("retrys");
-			BasicNameValuePair retrysInfo = new BasicNameValuePair("retrys", retrys);
-			new LoginTask(context).execute(retrysInfo);
+			WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+			WifiInfo wifiInfo = wifi_service.getConnectionInfo();
+			if (wifiInfo.getSSID().equals(ssid)) {
+				SystemClock.sleep(1000);
+				String retrys = intent.getStringExtra("retrys");
+				BasicNameValuePair retrysInfo = new BasicNameValuePair("retrys", retrys);
+				new LoginTask(context).execute(retrysInfo);
+			}
 		}
 
 	}

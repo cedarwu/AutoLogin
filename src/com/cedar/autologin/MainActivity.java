@@ -1,15 +1,20 @@
 package com.cedar.autologin;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Locale;
 
 import org.apache.http.message.BasicNameValuePair;
 
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -24,6 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -242,10 +248,30 @@ public class MainActivity extends ActionBarActivity implements
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_log, container,
 					false);
-			TextView textView = (TextView) rootView
-					.findViewById(R.id.section_label);
-			textView.setText("have not completed");
+			TextView textView = (TextView) rootView.findViewById(R.id.date_label);
+			String dateStamp = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(Calendar.getInstance().getTime());
+			textView.setText(dateStamp);
 			return rootView;
+		}
+	}
+
+	public static class DatePickerFragment extends DialogFragment implements
+			DatePickerDialog.OnDateSetListener {
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			// Use the current date as the default date in the picker
+			final Calendar c = Calendar.getInstance();
+			int year = c.get(Calendar.YEAR);
+			int month = c.get(Calendar.MONTH);
+			int day = c.get(Calendar.DAY_OF_MONTH);
+
+			// Create a new instance of DatePickerDialog and return it
+			return new DatePickerDialog(getActivity(), this, year, month, day);
+		}
+
+		public void onDateSet(DatePicker view, int year, int month, int day) {
+			Log.d("autologin", ("DatePickered" + String.valueOf(year) + String.valueOf(month) + String.valueOf(day)));
 		}
 	}
 
@@ -273,6 +299,11 @@ public class MainActivity extends ActionBarActivity implements
 					Toast.LENGTH_LONG).show();
 		}
 
+	}
+
+	public void changeDate(View view) {
+		DialogFragment newFragment = new DatePickerFragment();
+	    newFragment.show(getSupportFragmentManager(), "datePicker");
 	}
 
 	public String getSSID() {

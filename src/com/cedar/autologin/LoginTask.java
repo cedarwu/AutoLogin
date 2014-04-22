@@ -80,12 +80,12 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	protected void onPostExecute(Boolean result) {
 		if (result) {
 			Toast.makeText(context.getApplicationContext(),
-					"AutoLogin: sign into seu-wlan succeed !", Toast.LENGTH_LONG)
+					"AutoLogin: seu-wlan µÇÂ¼³É¹¦  ^_^", Toast.LENGTH_LONG)
 					.show();
 		} else if (retrys >= 3){
 			Log.d("autologin", "retrys too many times");
 			Toast.makeText(context.getApplicationContext(),
-					"AutoLogin: sign into seu-wlan failed !", Toast.LENGTH_LONG)
+					"AutoLogin: seu-wlan µÇÂ¼Ê§°Ü  >_<", Toast.LENGTH_LONG)
 					.show();
 		} else if (exceedError) {
 			Toast.makeText(context.getApplicationContext(),

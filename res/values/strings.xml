@@ -8,5 +8,6 @@
     <string name="account_message">用户名</string>
     <string name="passwd_message">密码</string>
     <string name="button_ok">确定</string>
+    <string name="button_changeDate">选择日期</string>
 
 </resources>
