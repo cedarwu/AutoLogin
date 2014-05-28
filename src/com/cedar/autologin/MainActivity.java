@@ -2,6 +2,8 @@ package com.cedar.autologin;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 import org.apache.http.message.BasicNameValuePair;
@@ -29,9 +31,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -249,8 +253,13 @@ public class MainActivity extends ActionBarActivity implements
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_log, container, false);
 			Button button = (Button) rootView.findViewById(R.id.button_changeDate);
-			String dateStamp = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(Calendar.getInstance().getTime());
+			ListView logList = (ListView) rootView.findViewById(R.id.logList);
+			String dateStamp = new SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(Calendar.getInstance().getTime());
 			button.setText(dateStamp);
+			SQLiteHelper db = new SQLiteHelper(getActivity());
+			List<String> dbLogList = db.getLogsByDate(dateStamp);
+			String[] logs = dbLogList.toArray(new String[dbLogList.size()]);
+			logList.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, logs));
 			return rootView;
 		}
 	}

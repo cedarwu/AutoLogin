@@ -78,20 +78,25 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	}
 
 	protected void onPostExecute(Boolean result) {
+		SQLiteHelper db = new SQLiteHelper(context);
 		if (result) {
+			db.addLog("登录成功");
 			Toast.makeText(context.getApplicationContext(),
-					"AutoLogin: seu-wlan 登录成功  ^_^", Toast.LENGTH_LONG)
+					"AutoLogin: 登录成功~", Toast.LENGTH_LONG)
 					.show();
 		} else if (retrys >= 3){
 			Log.d("autologin", "retrys too many times");
+			db.addLog("登录失败");
 			Toast.makeText(context.getApplicationContext(),
-					"AutoLogin: seu-wlan 登录失败  >_<", Toast.LENGTH_LONG)
+					"AutoLogin: 登录失败!", Toast.LENGTH_LONG)
 					.show();
 		} else if (exceedError) {
+			db.addLog("并发登录超过最大限制 ");
 			Toast.makeText(context.getApplicationContext(),
 					"AutoLogin: 并发登录超过最大限制 !", Toast.LENGTH_LONG)
 					.show();
 		} else if (passwdError) {
+			db.addLog("用户名密码错误 ");
 			Toast.makeText(context.getApplicationContext(),
 					"AutoLogin: 用户名密码错误 !", Toast.LENGTH_LONG)
 					.show();
