@@ -43,7 +43,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         // create fresh books table
         //this.onCreate(db);
     }
-    //---------------------------------------------------------------------
 
     private static final String TABLE_LOG = "log";
 
@@ -68,6 +67,9 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 values); // key/value -> keys = column names/ values = column values
         db.close();
         Log.d("addLog", log + dateStamp + timeStamp);
+        if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) <= 3) {
+        	cleanOldLogs();
+        }
     }
  
     public String getLog(int id){
@@ -104,7 +106,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
  
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
-        Log.d("count", String.valueOf(cursor.getCount()));
  
         if (cursor.moveToFirst()) {
             do {
@@ -144,28 +145,15 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     }
     
     public Boolean cleanOldLogs() {
-        //List<String> logs = new LinkedList<String>();
-        //String query = "SELECT  * FROM " + TABLE_LOG + "WHERE DATE < " + dateStamp;
-    	
-    	String dateStamp = new SimpleDateFormat("yyyy-MM-00", java.util.Locale.getDefault()).format(Calendar.getInstance().getTime());
+    	Calendar cal = Calendar.getInstance();
+    	cal.set(Calendar.MONTH, cal.get(Calendar.MONTH)-1);
+    	String dateStamp = new SimpleDateFormat("yyyyMM00", java.util.Locale.getDefault()).format(cal.getTime());
         
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_LOG, DATE+" < ?", new String[] { dateStamp });
+        int count = db.delete(TABLE_LOG, DATE+" < ?", new String[] { dateStamp });
         db.close();
+        Log.d("cleanOldLogs", String.valueOf(count) + " before " + dateStamp);
         
-        /*
-        Cursor cursor = db.rawQuery(query, null);
- 
-        if (cursor.moveToFirst()) {
-            do {
-                String logId = cursor.getString(0);
-            } while (cursor.moveToNext());
-        }
-        String[] ids = new String[];
-        db.delete(TABLE_NAME, KEY_ID+" IN (" + new String(new char[ids.length-1]).replace("\0", "?,") + "?)", ids);
- 
-        Log.d("getLogsByDate()" + date, logs.toString());
- 		*/
         return true;
     }
 }

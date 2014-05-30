@@ -2,7 +2,6 @@ package com.cedar.autologin;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,13 +29,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity implements
@@ -96,6 +95,7 @@ public class MainActivity extends ActionBarActivity implements
 					.setText(mSectionsPagerAdapter.getPageTitle(i))
 					.setTabListener(this));
 		}
+		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 	}
 
 	@Override
@@ -103,9 +103,6 @@ public class MainActivity extends ActionBarActivity implements
 
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
-		
-		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
 		
 		return true;
 	}
@@ -223,7 +220,8 @@ public class MainActivity extends ActionBarActivity implements
 			SharedPreferences sp = this.getActivity().getSharedPreferences("userInfo", Context.MODE_PRIVATE);
 			accountText.setText(sp.getString("account", ""));  
 			passwdText.setText(sp.getString("passwd", ""));
-			return rootView;
+
+	        return rootView;
 		}
 	}
 
@@ -253,14 +251,20 @@ public class MainActivity extends ActionBarActivity implements
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_log, container, false);
 			Button button = (Button) rootView.findViewById(R.id.button_changeDate);
-			ListView logList = (ListView) rootView.findViewById(R.id.logList);
 			String dateStamp = new SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(Calendar.getInstance().getTime());
 			button.setText(dateStamp);
+			return rootView;
+		}
+		
+		@Override
+		public void onActivityCreated(Bundle savedInstanceState) {
+			super.onActivityCreated(savedInstanceState);
 			SQLiteHelper db = new SQLiteHelper(getActivity());
+			String dateStamp = new SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(Calendar.getInstance().getTime());
 			List<String> dbLogList = db.getLogsByDate(dateStamp);
 			String[] logs = dbLogList.toArray(new String[dbLogList.size()]);
+			ListView logList = (ListView) getActivity().findViewById(R.id.logList);
 			logList.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, logs));
-			return rootView;
 		}
 	}
 
@@ -280,15 +284,17 @@ public class MainActivity extends ActionBarActivity implements
 		}
 
 		public void onDateSet(DatePicker view, int year, int month, int day) {
-			//LayoutInflater inflater = getLayoutInflater();
+			SQLiteHelper db = new SQLiteHelper(getActivity());
+			String dateStamp = String.format("%2s", year).replace(' ', '0') + String.format("%2s", month+1).replace(' ', '0') + String.format("%2s", day).replace(' ', '0');
 
-			//final View textEntryView = factory.inflate(R.layout.landmark_new_dialog, null);
-
-			//View rootView = inflater.inflate(R.layout.fragment_log, container, false);
-			//Button button = (Button) rootView.findViewById(R.id.button_changeDate);
-			//String dateStamp = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(Calendar.getInstance().getTime());
-			//button.setText(dateStamp);
-			Log.d("autologin", ("DatePickered" + String.valueOf(year) + String.valueOf(month) + String.valueOf(day)));
+			Button button = (Button) getActivity().findViewById(R.id.button_changeDate);
+			button.setText(dateStamp);
+			
+			List<String> dbLogList = db.getLogsByDate(dateStamp);
+			String[] logs = dbLogList.toArray(new String[dbLogList.size()]);
+			ListView logList = (ListView) getActivity().findViewById(R.id.logList);
+			logList.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, logs));
+			Log.d("autologin", ("DatePickered" + dateStamp));
 		}
 	}
 
