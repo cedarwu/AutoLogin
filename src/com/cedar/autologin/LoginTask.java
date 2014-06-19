@@ -47,7 +47,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 					}
 					catch (NumberFormatException e) {
 						Log.d("autologin", "Integer.parseInt error "+ e.toString());
-						retrys = 0;
+						return false;
 					}
 					SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
 					account = sp.getString("account", "");  

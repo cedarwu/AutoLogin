@@ -3,7 +3,6 @@ package com.cedar.autologin;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.http.message.BasicNameValuePair;
 
@@ -17,8 +16,10 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -95,6 +96,7 @@ public class MainActivity extends ActionBarActivity implements
 					.setText(mSectionsPagerAdapter.getPageTitle(i))
 					.setTabListener(this));
 		}
+		setTitle(getString(R.string.app_name) + "  " + getString(R.string.app_version));
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 	}
 
@@ -113,7 +115,9 @@ public class MainActivity extends ActionBarActivity implements
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
+		if (id == R.id.action_about) {
+			Uri uri = Uri.parse("http://autologin.cedar.tk");  
+		    startActivity(new Intent(Intent.ACTION_VIEW, uri));  
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -174,12 +178,12 @@ public class MainActivity extends ActionBarActivity implements
 
 		@Override
 		public CharSequence getPageTitle(int position) {
-			Locale l = Locale.getDefault();
+			//Locale l = Locale.getDefault();
 			switch (position) {
 			case 0:
-				return getString(R.string.title_section1).toUpperCase(l);
+				return getString(R.string.title_section1);
 			case 1:
-				return getString(R.string.title_section2).toUpperCase(l);
+				return getString(R.string.title_section2);
 			}
 			return null;
 		}
