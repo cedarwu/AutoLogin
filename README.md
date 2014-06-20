@@ -2,7 +2,7 @@
 
 ##### 当Android设备连接到seu-wlan之后，该应用会自动使用已保存的帐号登录Web认证。
 
-##### [AutoLogin](http://autologin.cedar.tk) v1.0 <small>(2014-6-6)</small> :&nbsp;&nbsp;&nbsp;&nbsp;[下载地址](http://cedar.qiniudn.com/AutoLogin.apk)&nbsp;&nbsp;&nbsp;&nbsp;[备用下载地址](http://cedarfile-cedarfile.stor.sinaapp.com/Software/AutoLogin.apk)
+##### [AutoLogin](http://autologin.cedar.tk) v1.0 <small>(2014-6-6)</small> :&nbsp;&nbsp;&nbsp;&nbsp;[下载地址](http://cedar.qiniudn.com/AutoLogin.apk)&nbsp;&nbsp;&nbsp;&nbsp;[备用下载地址](http://cedarfile-cedarfile.stor.sinaapp.com/Software/1/AutoLogin.apk)
 
 > 该应用只在东南大学校园内有效 !
 
