@@ -4,8 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
-import org.apache.http.message.BasicNameValuePair;
-
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.DialogFragment;
@@ -308,7 +306,7 @@ public class MainActivity extends ActionBarActivity implements
 		EditText passwdText = (EditText) findViewById(R.id.passwd_message);
 		String account = accountText.getText().toString();
 		String passwd = passwdText.getText().toString();
-		Log.d("autologin", ssid);
+		//Log.d("autologin", ssid);
 		if (account.isEmpty() || passwd.isEmpty()) {
 			Toast.makeText(getApplicationContext(), "Account and password can not be empty !",
 					Toast.LENGTH_LONG).show();
@@ -317,27 +315,19 @@ public class MainActivity extends ActionBarActivity implements
 			Editor editor = getSharedPreferences("userInfo", Context.MODE_PRIVATE).edit();  
             editor.putString("account", account);  
             editor.putString("passwd",passwd);  
-            editor.commit();  
-			if (getSSID().equals(ssid)) {
-				BasicNameValuePair userInfo = new BasicNameValuePair(account, passwd);
-				new LoginTask(getApplicationContext()).execute(userInfo);
+            editor.commit();
+            WifiManager wifi_service = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+			WifiInfo wifiInfo = wifi_service.getConnectionInfo();
+			if (wifiInfo.getSSID().equals(ssid)) {
+				Log.d("autologin", "wifi connected " + ssid);
+				new LoginTask(getApplicationContext()).execute();
 			}
-			Toast.makeText(getApplicationContext(), "You can exit now ~",
-					Toast.LENGTH_LONG).show();
+			//Toast.makeText(getApplicationContext(), "You can exit now ~", Toast.LENGTH_LONG).show();
 		}
-
 	}
 
 	public void changeDate(View view) {
 		DialogFragment newFragment = new DatePickerFragment();
 	    newFragment.show(getSupportFragmentManager(), "datePicker");
 	}
-
-	public String getSSID() {
-		WifiManager wifi_service = (WifiManager) getSystemService(WIFI_SERVICE);
-		WifiInfo wifiInfo = wifi_service.getConnectionInfo();
-		Log.d("autologin", "SSID: " + wifiInfo.getSSID());
-		return wifiInfo.getSSID();
-	}
-
 }

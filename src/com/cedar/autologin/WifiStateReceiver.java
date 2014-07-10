@@ -19,7 +19,10 @@ public class WifiStateReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		if (intent.getAction().equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
 			NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-			if (info.getState().equals(NetworkInfo.State.CONNECTED)) {
+			if (info == null) {
+				Log.d("autologin", "NetworkInfo is null");
+			}
+			else if (info.isConnected()) {
 				WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 				WifiInfo wifiInfo = wifi_service.getConnectionInfo();
 				if (wifiInfo.getSSID().equals(ssid)) {
@@ -31,7 +34,7 @@ public class WifiStateReceiver extends BroadcastReceiver {
 			WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 			WifiInfo wifiInfo = wifi_service.getConnectionInfo();
 			if (wifiInfo.getSSID().equals(ssid)) {
-				SystemClock.sleep(1000);
+				SystemClock.sleep(600);
 				String retrys = intent.getStringExtra("retrys");
 				BasicNameValuePair retrysInfo = new BasicNameValuePair("retrys", retrys);
 				new LoginTask(context).execute(retrysInfo);

@@ -66,8 +66,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 null, //nullColumnHack
                 values); // key/value -> keys = column names/ values = column values
         db.close();
-        Log.d("addLog", log + dateStamp + timeStamp);
-        if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) <= 3) {
+        //Log.d("addLog", log + dateStamp + timeStamp);
+        if (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) <= 2) {
         	cleanOldLogs();
         }
     }
@@ -93,7 +93,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
         db.close();
         
-        Log.d("getLog("+id+")", log);
+        //Log.d("getLog("+id+")", log);
  
         return log;
     }
@@ -116,7 +116,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
         db.close();
         
-        Log.d("getLogsByDate()" + date, logs.toString());
+        //Log.d("getLogsByDate()" + date, logs.toString());
  
         return logs;
     }
@@ -139,7 +139,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
         db.close();
         
-        Log.d("getAllLogs()", logs.toString());
+        //Log.d("getAllLogs()", logs.toString());
  
         return logs;
     }

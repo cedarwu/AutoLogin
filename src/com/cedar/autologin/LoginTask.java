@@ -30,6 +30,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	int retrys = 0;
 	Boolean exceedError = false;
 	Boolean passwdError = false;
+	Boolean alreadyLoggedIn = false;
 	
 	public LoginTask(Context context) {
 
@@ -37,34 +38,24 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	}
 	
 	protected Boolean doInBackground(BasicNameValuePair... params) {
-		if (!checkLogin()) {
-			if (params.length > 0) {
-				account = params[0].getName();
-				passwd = params[0].getValue();
-				if (account.equals("retrys")) {
-					try {
-						retrys = Integer.parseInt(passwd) + 1;
-					}
-					catch (NumberFormatException e) {
-						Log.d("autologin", "Integer.parseInt error "+ e.toString());
-						return false;
-					}
-					SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
-					account = sp.getString("account", "");  
-					passwd = sp.getString("passwd", "");
-					if (account.equals("") || passwd.equals("")) {
-						Log.d("autologin", "account or passwd is empty");
-						return false;
-					}
-				}
-			} else {
-				SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
-				account = sp.getString("account", "");  
-				passwd = sp.getString("passwd", "");
-				if (account.equals("") || passwd.equals("")) {
-					Log.d("autologin", "account or passwd is empty");
-					return false;
-				}
+		if (params.length > 0 && params[0].getName().equals("retrys")) {
+			try {
+				retrys = Integer.parseInt(params[0].getValue()) + 1;
+			} catch (NumberFormatException e) {
+				Log.d("autologin", "Integer.parseInt error " + e.toString());
+				return false;
+			}
+		}
+		if (checkLogin()) {
+			alreadyLoggedIn = true;
+		}
+		else {
+			SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+			account = sp.getString("account", "");  
+			passwd = sp.getString("passwd", "");
+			if (account.equals("") || passwd.equals("")) {
+				Log.d("autologin", "account or passwd is empty");
+				return false;
 			}
 			if (login()) {
 				Log.d("autologin", "login succeed");
@@ -99,6 +90,11 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			db.addLog("用户名密码错误 ");
 			Toast.makeText(context.getApplicationContext(),
 					"AutoLogin: 用户名密码错误 !", Toast.LENGTH_LONG)
+					.show();
+		} else if (alreadyLoggedIn) {
+			db.addLog("已登录 ");
+			Toast.makeText(context.getApplicationContext(),
+					"AutoLogin: 已登录~", Toast.LENGTH_LONG)
 					.show();
 		}
 	}
