@@ -322,7 +322,9 @@ public class MainActivity extends ActionBarActivity implements
 				Log.d("autologin", "wifi connected " + ssid);
 				new LoginTask(getApplicationContext()).execute();
 			}
-			//Toast.makeText(getApplicationContext(), "You can exit now ~", Toast.LENGTH_LONG).show();
+			else {
+				Toast.makeText(getApplicationContext(), "You can exit now ~", Toast.LENGTH_LONG).show();
+			}
 		}
 	}
 
