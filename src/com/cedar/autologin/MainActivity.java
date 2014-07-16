@@ -17,6 +17,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -40,7 +42,7 @@ import android.widget.Toast;
 public class MainActivity extends ActionBarActivity implements
 		ActionBar.TabListener {
 
-	static final String ssid = "\"seu-wlan\"";
+	static final String ssid = "seu-wlan";
 	/**
 	 * The {@link android.support.v4.view.PagerAdapter} that will provide
 	 * fragments for each of the sections. We use a {@link FragmentPagerAdapter}
@@ -94,7 +96,7 @@ public class MainActivity extends ActionBarActivity implements
 					.setText(mSectionsPagerAdapter.getPageTitle(i))
 					.setTabListener(this));
 		}
-		setTitle(getString(R.string.app_name) + "  " + getString(R.string.app_version));
+		setTitle(getString(R.string.app_name) + "  v" + getVersion(this));
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 	}
 
@@ -318,7 +320,7 @@ public class MainActivity extends ActionBarActivity implements
             editor.commit();
             WifiManager wifi_service = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 			WifiInfo wifiInfo = wifi_service.getConnectionInfo();
-			if (wifiInfo.getSSID().equals(ssid)) {
+			if (wifiInfo.getSSID().equals(ssid) || wifiInfo.getSSID().equals("\"" + ssid + "\"")) {
 				Log.d("autologin", "wifi connected " + ssid);
 				new LoginTask(getApplicationContext()).execute();
 			}
@@ -332,4 +334,15 @@ public class MainActivity extends ActionBarActivity implements
 		DialogFragment newFragment = new DatePickerFragment();
 	    newFragment.show(getSupportFragmentManager(), "datePicker");
 	}
+	
+	public String getVersion(Context context) 
+    {  
+        try {  
+            PackageInfo pi=context.getPackageManager().getPackageInfo(context.getPackageName(), 0);  
+            return pi.versionName;  
+        } catch (NameNotFoundException e) {  
+        	Log.d("autologin", "getVersion failed");
+            return "?";  
+        }  
+    }
 }

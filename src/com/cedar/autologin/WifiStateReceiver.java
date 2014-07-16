@@ -13,7 +13,7 @@ import android.util.Log;
 
 public class WifiStateReceiver extends BroadcastReceiver {
 
-	static final String ssid = "\"seu-wlan\"";
+	static final String ssid = "seu-wlan";
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -25,7 +25,7 @@ public class WifiStateReceiver extends BroadcastReceiver {
 			else if (info.isConnected()) {
 				WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 				WifiInfo wifiInfo = wifi_service.getConnectionInfo();
-				if (wifiInfo.getSSID().equals(ssid)) {
+				if (wifiInfo.getSSID().equals(ssid) || wifiInfo.getSSID().equals("\"" + ssid + "\"")) {
 					Log.d("autologin", "wifi connected " + wifiInfo.getSSID());
 					new LoginTask(context).execute();
 				}
@@ -33,7 +33,7 @@ public class WifiStateReceiver extends BroadcastReceiver {
 		} else if (intent.getAction().equals("com.cedar.autologin.unknownhostBroadcast")) {
 			WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 			WifiInfo wifiInfo = wifi_service.getConnectionInfo();
-			if (wifiInfo.getSSID().equals(ssid)) {
+			if (wifiInfo.getSSID().equals(ssid) || wifiInfo.getSSID().equals("\"" + ssid + "\"")) {
 				SystemClock.sleep(600);
 				String retrys = intent.getStringExtra("retrys");
 				BasicNameValuePair retrysInfo = new BasicNameValuePair("retrys", retrys);

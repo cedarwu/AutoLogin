@@ -102,7 +102,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public List<String> getLogsByDate(String date) {
         List<String> logs = new LinkedList<String>();
  
-        String query = "SELECT  * FROM " + TABLE_LOG + " WHERE date = " + date;
+        String query = "SELECT  * FROM " + TABLE_LOG + " WHERE date = " + date + " ORDER BY msg DESC";
  
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);

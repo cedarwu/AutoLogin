@@ -96,6 +96,11 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			Toast.makeText(context.getApplicationContext(),
 					"AutoLogin: ÒÑµÇÂ¼~", Toast.LENGTH_LONG)
 					.show();
+		} else {
+			db.addLog("Î´Öª´íÎó ");
+			Toast.makeText(context.getApplicationContext(),
+					"AutoLogin: Î´Öª´íÎó !", Toast.LENGTH_LONG)
+					.show();
 		}
 	}
 
