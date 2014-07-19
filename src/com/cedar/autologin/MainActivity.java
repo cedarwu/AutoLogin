@@ -165,6 +165,8 @@ public class MainActivity extends ActionBarActivity implements
 			case 0:
 				return AccountFragment.newInstance(position + 1);
 			case 1:
+				return NicFragment.newInstance(position + 1);
+			case 2:
 				return LogFragment.newInstance(position + 1);
 			}
 			return AccountFragment.newInstance(position + 1);
@@ -173,7 +175,7 @@ public class MainActivity extends ActionBarActivity implements
 		@Override
 		public int getCount() {
 			// Show 2 total pages.
-			return 2;
+			return 3;
 		}
 
 		@Override
@@ -184,6 +186,8 @@ public class MainActivity extends ActionBarActivity implements
 				return getString(R.string.title_section1);
 			case 1:
 				return getString(R.string.title_section2);
+			case 2:
+				return getString(R.string.title_section3);
 			}
 			return null;
 		}
@@ -224,6 +228,30 @@ public class MainActivity extends ActionBarActivity implements
 			SharedPreferences sp = this.getActivity().getSharedPreferences("userInfo", Context.MODE_PRIVATE);
 			accountText.setText(sp.getString("account", ""));  
 			passwdText.setText(sp.getString("passwd", ""));
+
+	        return rootView;
+		}
+	}
+
+	public static class NicFragment extends Fragment {
+
+		private static final String ARG_SECTION_NUMBER = "section_number";
+
+		public static NicFragment newInstance(int sectionNumber) {
+			NicFragment fragment = new NicFragment();
+			Bundle args = new Bundle();
+			args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+			fragment.setArguments(args);
+			return fragment;
+		}
+
+		public NicFragment() {
+		}
+
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container,
+				Bundle savedInstanceState) {
+			View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
 	        return rootView;
 		}
