@@ -22,7 +22,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
-
 public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	Context context;
 	String account;
@@ -95,11 +94,6 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			db.addLog("ÒÑµÇÂ¼ ");
 			Toast.makeText(context.getApplicationContext(),
 					"AutoLogin: ÒÑµÇÂ¼~", Toast.LENGTH_LONG)
-					.show();
-		} else {
-			db.addLog("Î´Öª´íÎó ");
-			Toast.makeText(context.getApplicationContext(),
-					"AutoLogin: Î´Öª´íÎó !", Toast.LENGTH_LONG)
 					.show();
 		}
 	}
