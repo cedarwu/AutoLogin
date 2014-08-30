@@ -29,7 +29,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="@string/button_ok"
-        android:onClick="accountOK" />
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:onClick="accountOK"
+        android:text="@string/button_ok" />
 
 </LinearLayout>

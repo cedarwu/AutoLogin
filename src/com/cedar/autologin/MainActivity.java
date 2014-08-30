@@ -16,6 +16,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.util.EntityUtils;
 
 import android.support.v7.app.ActionBarActivity;
@@ -40,6 +42,7 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -47,6 +50,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -77,6 +81,10 @@ public class MainActivity extends ActionBarActivity implements
 	 */
 	ViewPager mViewPager;
 
+	AccountFragment accountFragment = null;
+	NicFragment nicFragment = null;
+	LogFragment logFragment = null;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -90,7 +98,7 @@ public class MainActivity extends ActionBarActivity implements
 		// primary sections of the activity.
 		mSectionsPagerAdapter = new SectionsPagerAdapter(
 				getSupportFragmentManager());
-
+		
 		// Set up the ViewPager with the sections adapter.
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -149,11 +157,11 @@ public class MainActivity extends ActionBarActivity implements
 			FragmentTransaction fragmentTransaction) {
 		// When the given tab is selected, switch to the corresponding page in
 		// the ViewPager.
-		//InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-		//if( tab.getPosition() == 1) {
-		//	imm.hideSoftInputFromWindow(
-		//			this.getCurrentFocus().getWindowToken(), 0);
-		//}
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		if( this.getCurrentFocus() != null) {
+			imm.hideSoftInputFromWindow(
+					this.getCurrentFocus().getWindowToken(), 0);
+		}
 		mViewPager.setCurrentItem(tab.getPosition());
 	}
 
@@ -184,13 +192,16 @@ public class MainActivity extends ActionBarActivity implements
 			// below).
 			switch (position) {
 			case 0:
-				return AccountFragment.newInstance(position + 1);
+			default:
+				accountFragment = AccountFragment.newInstance(position + 1);
+				return accountFragment;
 			case 1:
-				return NicFragment.newInstance(position + 1);
+				nicFragment = NicFragment.newInstance(position + 1);
+				return nicFragment;
 			case 2:
-				return LogFragment.newInstance(position + 1);
+				logFragment = LogFragment.newInstance(position + 1);
+				return logFragment;
 			}
-			return AccountFragment.newInstance(position + 1);
 		}
 
 		@Override
@@ -269,7 +280,9 @@ public class MainActivity extends ActionBarActivity implements
 		
 		ArrayList<OnlineDevice> onlineDevices = new ArrayList<OnlineDevice>();
 
-		DefaultHttpClient client = new DefaultHttpClient();
+		DefaultHttpClient client = getHttpClient();
+		
+	    private SwipeRefreshLayout mSwipeRefreshLayout;
 		
 		TextView accountCardText;
 		TextView accountStateText;
@@ -297,13 +310,33 @@ public class MainActivity extends ActionBarActivity implements
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
 				Bundle savedInstanceState) {
 			View rootView = inflater.inflate(R.layout.fragment_nic, container, false);
+			
+			mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container);
+			mSwipeRefreshLayout.setColorScheme(android.R.color.holo_blue_bright, 
+	                android.R.color.holo_green_light, 
+	                android.R.color.holo_orange_light, 
+	                android.R.color.holo_red_light);
 
 	        return rootView;
 		}
 		
+
 		@Override
 		public void onActivityCreated(Bundle savedInstanceState) {
 			super.onActivityCreated(savedInstanceState);
+		}
+		
+		@Override
+		public void onStart() {
+			super.onStart();
+			
+			mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+	            @Override
+	            public void onRefresh() {
+	                refresh();
+	            }
+	        });
+			
 			accountCardText = (TextView) getActivity().findViewById(R.id.accountCard);
 			accountStateText = (TextView) getActivity().findViewById(R.id.accountState);
 			onlineStateText = (TextView) getActivity().findViewById(R.id.onlineState);
@@ -318,6 +351,47 @@ public class MainActivity extends ActionBarActivity implements
 			new NicTask(getActivity().getApplicationContext(), "initial").execute();
 		}
 		
+		private void refresh() {
+	        clearInfo();
+	        new NicTask(getActivity().getApplicationContext(), "initial").execute();
+	    }
+		
+	    private void onRefreshComplete() {
+	        mSwipeRefreshLayout.setRefreshing(false);
+	    }
+	    
+	    private void clearInfo() {
+	    	accountCardText.setText("");
+	    	accountStateText.setText("");
+	    	onlineStateText.setText("");
+	    	usageText.setText("");
+	    	expireDateText.setText("");
+	    	remainMoneyText.setText("");
+	    	
+	    	onlineTable.removeAllViews();
+	    	onlineTable.removeAllViewsInLayout();
+	    	
+			account = new String("");
+			passwd = new String("");
+			
+			accountState = new String("");
+			onlineState = new String("");
+			usage = new String("");
+			expireDate = new String("");
+			remainMoney = new String("");
+			onlineDevices = new ArrayList<OnlineDevice>();
+			
+			client = getHttpClient();
+	    }
+
+		public DefaultHttpClient getHttpClient() {
+			BasicHttpParams httpParams = new BasicHttpParams();
+			HttpConnectionParams.setConnectionTimeout(httpParams, 5000);
+			HttpConnectionParams.setSoTimeout(httpParams, 5000);
+			DefaultHttpClient client = new DefaultHttpClient(httpParams);
+			return client;
+		}
+
 		public class OnlineDevice {
 			String ip = new String("");
 			String mac = new String("");
@@ -341,9 +415,8 @@ public class MainActivity extends ActionBarActivity implements
 			
 			Boolean stopped = false;
 
-			Boolean exceedError = false;
-			Boolean passwdError = false;
-			Boolean alreadyLoggedIn = false;
+			Boolean networkError = false;
+			String errorInfo = new String("");
 
 			public NicTask(Context context, String action) {
 				this.context = context;
@@ -425,31 +498,15 @@ public class MainActivity extends ActionBarActivity implements
 					accountStateText.setText("欠费停用,请缴纳月租费");
 				}
 				
-				/*
-				SQLiteHelper db = new SQLiteHelper(context);
-				if (result) {
-					db.addLog("登录成功");
+				if (networkError) {
 					Toast.makeText(context.getApplicationContext(),
-							"AutoLogin: 登录成功~", Toast.LENGTH_LONG).show();
-				} else if (exceedError) {
-					db.addLog("并发登录超过最大限制 ");
+							"AutoLogin: 网络错误 !", Toast.LENGTH_LONG).show();
+				} else if (!errorInfo.equals("")) {
 					Toast.makeText(context.getApplicationContext(),
-							"AutoLogin: 并发登录超过最大限制 !", Toast.LENGTH_LONG)
-							.show();
-				} else if (passwdError) {
-					db.addLog("用户名密码错误 ");
-					Toast.makeText(context.getApplicationContext(),
-							"AutoLogin: 用户名密码错误 !", Toast.LENGTH_LONG).show();
-				} else if (alreadyLoggedIn) {
-					db.addLog("已登录 ");
-					Toast.makeText(context.getApplicationContext(),
-							"AutoLogin: 已登录~", Toast.LENGTH_LONG).show();
-				} else {
-					db.addLog("未知错误 ");
-					Toast.makeText(context.getApplicationContext(),
-							"AutoLogin: 未知错误 !", Toast.LENGTH_LONG).show();
+							"AutoLogin: " + errorInfo, Toast.LENGTH_LONG).show();
 				}
-				*/
+				
+	            onRefreshComplete();
 			}
 
 			public Boolean login() {
@@ -471,9 +528,6 @@ public class MainActivity extends ActionBarActivity implements
 							passwd));
 					request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 					
-					//HttpHost proxy = new HttpHost("192.168.1.5", 8080);
-					//client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
-					
 					HttpResponse response = client.execute(request);
 					int statusCode = response.getStatusLine().getStatusCode();
 					
@@ -482,33 +536,41 @@ public class MainActivity extends ActionBarActivity implements
 								+ String.valueOf(statusCode));
 						return false;
 					}
-					
+
+					/*
 					if (!checkCookie(client)) {
 						Log.d("nic", "cookie error");
 						return false;
 					}
+					*/
 
 					String responseStr = EntityUtils.toString(
 							response.getEntity(), "gb2312");
-					//Log.d("autologin", "login response:" + responseStr);
+					Log.d("autologin", "login response:" + responseStr);
 					if (responseStr.contains("到期时间")) {
 						Pattern p = Pattern.compile("<br>到期时间为<br>([\\d-]+)</td>");
 						Matcher m = p.matcher(responseStr);
 						if (m.find()) {
 							expireDate = m.group(1);
 						}
-						
 						Log.d("nic", "logged in");
 						return true;
 					} else if (responseStr.contains("欠费停用")) {
 						stopped = true;
 						Log.d("nic", "logged in");
 						return true;
-					} else
+					} else {
+						Pattern p = Pattern.compile("id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
+						Matcher m = p.matcher(responseStr);
+						if (m.find()) {
+							errorInfo = m.group(1);
+						}
 						return false;
+					}
 				} catch (Exception e) {
 					Log.d("autologin",
 							"Error in http connection " + e.toString());
+					networkError = true;
 					return false;
 				}
 			}
@@ -571,6 +633,7 @@ public class MainActivity extends ActionBarActivity implements
 				} catch (Exception e) {
 					Log.d("autologin",
 							"Error in http connection " + e.toString());
+					networkError = true;
 					return false;
 				}
 			}
@@ -584,7 +647,7 @@ public class MainActivity extends ActionBarActivity implements
 				if(cookieNames.contains("PHPSESSID") && cookieNames.contains("iPlanetDirectoryPro"))
 					return true;
 				else {
-					Log.d("nic", "cookies:" + cookieNames.toString());
+					//Log.d("nic", "cookies:" + cookieNames.toString());
 					return false;
 				}
 			}
@@ -665,7 +728,6 @@ public class MainActivity extends ActionBarActivity implements
 			super.onActivityCreated(savedInstanceState);
 		}
 
-		/** Fragement 进入可视状态 */
 		@Override
 		public void onStart() {
 			super.onStart();
@@ -679,12 +741,6 @@ public class MainActivity extends ActionBarActivity implements
 					R.id.logList);
 			logList.setAdapter(new ArrayAdapter<String>(getActivity(),
 					android.R.layout.simple_list_item_1, logs));
-		}
-
-		/** Fragement 进入激活状态 */
-		@Override
-		public void onResume() {
-			super.onResume();
 		}
 	}
 
@@ -730,10 +786,16 @@ public class MainActivity extends ActionBarActivity implements
 					Toast.LENGTH_LONG).show();
 			return;
 		} else {
+			InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+			if( view.getWindowToken() != null) {
+				imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+			}
+			
 			Editor editor = getSharedPreferences("userInfo", Context.MODE_PRIVATE).edit();  
             editor.putString("account", account);  
             editor.putString("passwd",passwd);  
             editor.commit();
+            nicFragment.refresh();
             WifiManager wifi_service = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 			WifiInfo wifiInfo = wifi_service.getConnectionInfo();
 			if (wifiInfo.getSSID().equals(ssid) || wifiInfo.getSSID().equals("\"" + ssid + "\"")) {
@@ -741,7 +803,7 @@ public class MainActivity extends ActionBarActivity implements
 				new LoginTask(getApplicationContext()).execute();
 			}
 			else {
-				Toast.makeText(getApplicationContext(), "You can exit now ~", Toast.LENGTH_LONG).show();
+				Toast.makeText(getApplicationContext(), "保存成功  ~", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
