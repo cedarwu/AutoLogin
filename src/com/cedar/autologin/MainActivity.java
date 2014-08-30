@@ -317,6 +317,13 @@ public class MainActivity extends ActionBarActivity implements
 	                android.R.color.holo_orange_light, 
 	                android.R.color.holo_red_light);
 
+			mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+	            @Override
+	            public void onRefresh() {
+	                refresh();
+	            }
+	        });
+			
 	        return rootView;
 		}
 		
@@ -329,13 +336,6 @@ public class MainActivity extends ActionBarActivity implements
 		@Override
 		public void onStart() {
 			super.onStart();
-			
-			mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-	            @Override
-	            public void onRefresh() {
-	                refresh();
-	            }
-	        });
 			
 			accountCardText = (TextView) getActivity().findViewById(R.id.accountCard);
 			accountStateText = (TextView) getActivity().findViewById(R.id.accountState);
@@ -455,6 +455,9 @@ public class MainActivity extends ActionBarActivity implements
 					usageText.setText(usage);
 					expireDateText.setText(expireDate);
 					remainMoneyText.setText(remainMoney);
+					
+					onlineTable.removeAllViews();
+					onlineTable.removeAllViewsInLayout();
 					
 					if (onlineDevices.size() > 0) {
 						TableRow row = new TableRow(context);
@@ -605,6 +608,7 @@ public class MainActivity extends ActionBarActivity implements
 					usage = findInStr(responseStr, 
 							"<strong>已使用流量</strong></td>\\s+<td width=\"50%\" align=\"center\" bgcolor=\"#FFFFFF\">\\s+([\\d\\.]+ \\w+)\\s+</td>");
 					
+					onlineDevices.clear();
 					Pattern p = Pattern.compile("<td width=\"30%\" align=\"center\" bgcolor=\"#FFFFFF\">(\\S+)</td>\\s+<td width=\"30%\" align=\"center\" bgcolor=\"#FFFFFF\">([\\d\\.]+)</td>\\s+<td width=\"30%\" align=\"center\" bgcolor=\"#FFFFFF\">([\\d\\w\\.]+)</td>\\s+<td width=\"20%\" align=\"center\" bgcolor=\"#FFFFFF\">\\s+<a href=\"javascript:offline\\( '[\\d\\.]+','([\\d]+)', '([\\d\\.]+)' \\)\">");
 					Matcher m = p.matcher(responseStr);
 					while (m.find() && m.groupCount() == 5) {
