@@ -27,9 +27,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -294,6 +296,13 @@ public class MainActivity extends ActionBarActivity implements
 		Button button_payfee;
 		TextView remainMoneyText;
 		Button buttonRecharge;
+		
+		AlertDialog.Builder builder;
+		NicFragment nic = this;
+		
+		String kick_ip_address = new String("");
+		String session_id = new String("");
+		String nas_ip_address = new String("");
 
 		public static NicFragment newInstance(int sectionNumber) {
 			NicFragment fragment = new NicFragment();
@@ -348,7 +357,13 @@ public class MainActivity extends ActionBarActivity implements
 			remainMoneyText = (TextView) getActivity().findViewById(R.id.remainMoney);
 			buttonRecharge = (Button) getActivity().findViewById(R.id.buttonRecharge);
 			
+			builder = new AlertDialog.Builder(getActivity());  
 			new NicTask(getActivity().getApplicationContext(), "initial").execute();
+			
+			button_payfee.setOnClickListener(new View.OnClickListener() {
+	             public void onClick(View v) {
+	             }
+	         });
 		}
 		
 		private void refresh() {
@@ -442,8 +457,12 @@ public class MainActivity extends ActionBarActivity implements
 						return false;
 					}
 				}
-				if (!stopped)
+				if (stopped)
+					return false;
+				if (action.equals("initial"))
 					getStates();
+				else if (action.equals("offline"))
+					offline();
 				return true;
 			}
 
@@ -493,6 +512,30 @@ public class MainActivity extends ActionBarActivity implements
 						
 						Button b = new Button(context);
 						b.setText("下线");
+						final OnlineDevice dev = device;
+						b.setOnClickListener(new View.OnClickListener() {
+				             public void onClick(View v) {
+				            	 builder.setTitle("下线")
+				               	    .setMessage("您确认要将IP地址为：" + dev.ip + " 的机器下线吗？")
+				               	    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+				               	        public void onClick(DialogInterface dialog, int which) {
+				               	        	kick_ip_address = dev.ip;
+				               	        	session_id = dev.session_id;
+				               	        	nas_ip_address = dev.nas_ip;
+				               		        new NicTask(getActivity().getApplicationContext(), "offline").execute();
+				               		        //nic.refresh();
+				               	        }
+				               	     })
+				               	    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+				               	        public void onClick(DialogInterface dialog, int which) { 
+				               	            // do nothing
+				               	        }
+				               	     })
+				               	    .setIcon(android.R.drawable.ic_dialog_alert)
+				               	    .show();
+
+				             }
+				         });
 						row.addView(b);
 						
 						onlineTable.addView(row,new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)); 
@@ -549,7 +592,7 @@ public class MainActivity extends ActionBarActivity implements
 
 					String responseStr = EntityUtils.toString(
 							response.getEntity(), "gb2312");
-					Log.d("autologin", "login response:" + responseStr);
+					//Log.d("autologin", "login response:" + responseStr);
 					if (responseStr.contains("到期时间")) {
 						Pattern p = Pattern.compile("<br>到期时间为<br>([\\d-]+)</td>");
 						Matcher m = p.matcher(responseStr);
@@ -693,6 +736,47 @@ public class MainActivity extends ActionBarActivity implements
 				params.setMargins(20, 0, 20, 0);
 				t.setLayoutParams(params);
 			}
+			
+			void offline() {
+				Log.d("offline", kick_ip_address);
+				
+				if (kick_ip_address.equals("") || session_id.equals("") || nas_ip_address.equals(""))
+					return;
+
+				try {
+					URI website = new URI(
+							"https://nic.seu.edu.cn/selfservice/service_manage_status_web.php");
+					HttpPost request = new HttpPost(website);
+					setPostHeader(request);
+
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+							2);
+					nameValuePairs.add(new BasicNameValuePair("operation",
+							"offline"));
+					nameValuePairs.add(new BasicNameValuePair("item", ""));
+					nameValuePairs
+							.add(new BasicNameValuePair("error_info", ""));
+					nameValuePairs.add(new BasicNameValuePair(
+							"kick_ip_address", kick_ip_address));
+					nameValuePairs.add(new BasicNameValuePair("session_id",
+							session_id));
+					nameValuePairs.add(new BasicNameValuePair("nas_ip_address",
+							nas_ip_address));
+					request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+					HttpResponse response = client.execute(request);
+					int statusCode = response.getStatusLine().getStatusCode();
+
+					if (statusCode != 200) {
+						Log.d("nic", "offline " + kick_ip_address + " failed, statusCode:" + String.valueOf(statusCode));
+						return;
+					}
+					getStates();
+				} catch (Exception e) {
+					Log.d("nic", "Error in http connection " + e.toString());
+					return;
+				}
+			}
 		}
 	}
 
@@ -779,7 +863,6 @@ public class MainActivity extends ActionBarActivity implements
 	}
 
 	public void accountOK(View view) {
-
 		EditText accountText = (EditText) findViewById(R.id.account_message);
 		EditText passwdText = (EditText) findViewById(R.id.passwd_message);
 		String account = accountText.getText().toString();
@@ -807,7 +890,7 @@ public class MainActivity extends ActionBarActivity implements
 				new LoginTask(getApplicationContext()).execute();
 			}
 			else {
-				Toast.makeText(getApplicationContext(), "保存成功  ~", Toast.LENGTH_LONG).show();
+				Toast.makeText(getApplicationContext(), "保存成功,程序将自动完成Web认证 ~", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
