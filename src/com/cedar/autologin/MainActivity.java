@@ -83,9 +83,9 @@ public class MainActivity extends ActionBarActivity implements
 	 */
 	ViewPager mViewPager;
 
-	AccountFragment accountFragment = null;
-	NicFragment nicFragment = null;
-	LogFragment logFragment = null;
+	static AccountFragment accountFragment = null;
+	static NicFragment nicFragment = null;
+	static LogFragment logFragment = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -303,6 +303,8 @@ public class MainActivity extends ActionBarActivity implements
 		String kick_ip_address = new String("");
 		String session_id = new String("");
 		String nas_ip_address = new String("");
+		
+		int payFeeMonths = 0;
 
 		public static NicFragment newInstance(int sectionNumber) {
 			NicFragment fragment = new NicFragment();
@@ -357,11 +359,15 @@ public class MainActivity extends ActionBarActivity implements
 			remainMoneyText = (TextView) getActivity().findViewById(R.id.remainMoney);
 			buttonRecharge = (Button) getActivity().findViewById(R.id.buttonRecharge);
 			
-			builder = new AlertDialog.Builder(getActivity());  
+			builder = new AlertDialog.Builder(getActivity());
 			new NicTask(getActivity().getApplicationContext(), "initial").execute();
 			
 			button_payfee.setOnClickListener(new View.OnClickListener() {
 	             public void onClick(View v) {
+	                 FragmentManager fm = getActivity().getSupportFragmentManager();
+	                 PayFeeDialog editNameDialog = PayFeeDialog.newInstance(accountState);
+	                 editNameDialog.show(fm, "fragment_edit_name");
+	                 
 	             }
 	         });
 		}
@@ -459,10 +465,14 @@ public class MainActivity extends ActionBarActivity implements
 				}
 				if (stopped)
 					return false;
-				if (action.equals("initial"))
-					getStates();
-				else if (action.equals("offline"))
+				//if (action.equals("initial"))
+				if (action.equals("offline"))
 					offline();
+				if (action.equals("payfee")) {
+					payFee();
+					getExpireDate();
+				}
+				getStates();
 				return true;
 			}
 
@@ -599,11 +609,11 @@ public class MainActivity extends ActionBarActivity implements
 						if (m.find()) {
 							expireDate = m.group(1);
 						}
-						Log.d("nic", "logged in");
+						//Log.d("nic", "logged in");
 						return true;
 					} else if (responseStr.contains("欠费停用")) {
 						stopped = true;
-						Log.d("nic", "logged in");
+						//Log.d("nic", "logged in");
 						return true;
 					} else {
 						Pattern p = Pattern.compile("id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
@@ -644,9 +654,13 @@ public class MainActivity extends ActionBarActivity implements
 
 					accountState = findInStr(responseStr, 
 							"<strong>账户状态</strong></td>\\s+<td width=\"50%\" align=\"center\" bgcolor=\"#FFFFFF\">(\\S+)</td>");
-					
+
 					onlineState = findInStr(responseStr, 
-							"<strong>在线状态</strong></td>\\s+<td width=\"60%\" align=\"center\" bgcolor=\"#FFFFFF\" colspan=\"3\"><font color=\"#FF0000\">(\\S+)</font></td>");
+							"<strong>在线状态</strong></td>\\s+<td width=\"\\d0%\" align=\"center\" bgcolor=\"#FFFFFF\" colspan=\"3\"><font color=\"#FF0000\">(\\S+)</font></td>");
+					
+					if (onlineState.equals(""))
+						onlineState = findInStr(responseStr, 
+							"<strong>在线状态</strong></td>\\s+<td width=\"\\d0%\" align=\"center\" bgcolor=\"#FFFFFF\" colspan=\"3\">(\\S+)</td>");
 
 					usage = findInStr(responseStr, 
 							"<strong>已使用流量</strong></td>\\s+<td width=\"50%\" align=\"center\" bgcolor=\"#FFFFFF\">\\s+([\\d\\.]+ \\w+)\\s+</td>");
@@ -684,6 +698,38 @@ public class MainActivity extends ActionBarActivity implements
 					return false;
 				}
 			}
+
+			public Boolean getExpireDate() {
+				try {
+					URI website = new URI(
+							"https://nic.seu.edu.cn/selfservice/service_manage_index.php");
+					
+					HttpGet request = new HttpGet(website);
+					setGetHeader(request);
+					
+					HttpResponse response = client.execute(request);
+					int statusCode = response.getStatusLine().getStatusCode();
+					
+					if (statusCode != 200) {
+						Log.d("nic", "getExpireDate failed, statusCode:"
+								+ String.valueOf(statusCode));
+						return false;
+					}
+
+					String responseStr = EntityUtils.toString(
+							response.getEntity(), "gb2312");
+
+					expireDate = findInStr(responseStr, 
+							"<br>到期时间为<br>([\\d-]+)</td>");
+					
+					return true;
+				} catch (Exception e) {
+					Log.d("getExpireDate",
+							"Error in http connection " + e.toString());
+					networkError = true;
+					return false;
+				}
+			}
 			
 			private Boolean checkCookie(DefaultHttpClient client) {
 				ArrayList<String> cookieNames = new ArrayList<String>();
@@ -698,9 +744,11 @@ public class MainActivity extends ActionBarActivity implements
 					return false;
 				}
 			}
+			
+			String userAgent = new String("Mozilla/5.0 (Android " + android.os.Build.VERSION.RELEASE + ") AutoLogin/" + version);
 
 			private void setGetHeader(HttpGet request) {
-				request.setHeader("User-Agent", "Mozilla/5.0 (Android) AutoLogin/" + version);
+				request.setHeader("User-Agent", userAgent);
 				request.setHeader("Referer", "https://nic.seu.edu.cn/selfservice/campus_login.php");
 				request.setHeader("Accept",
 		                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
@@ -708,7 +756,7 @@ public class MainActivity extends ActionBarActivity implements
 				request.setHeader("Accept-Language", "zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3");
 		    }
 			private void setPostHeader(HttpPost request) {
-				request.setHeader("User-Agent", "Mozilla/5.0 (Android) AutoLogin/" + version);
+				request.setHeader("User-Agent", userAgent);
 				request.setHeader("Referer", "https://nic.seu.edu.cn/selfservice/campus_login.php");
 				request.setHeader("Accept",
 		                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
@@ -771,11 +819,53 @@ public class MainActivity extends ActionBarActivity implements
 						Log.d("nic", "offline " + kick_ip_address + " failed, statusCode:" + String.valueOf(statusCode));
 						return;
 					}
-					getStates();
+					
+					String responseStr = EntityUtils.toString(
+							response.getEntity(), "gb2312");
+					errorInfo = findInStr(responseStr, "id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
 				} catch (Exception e) {
-					Log.d("nic", "Error in http connection " + e.toString());
+					Log.d("offline", "Error in http connection " + e.toString());
 					return;
 				}
+			}
+			
+			Boolean payFee() {
+				String months = String.valueOf(payFeeMonths);
+				//Log.d("payFee", months);
+				
+				if (payFeeMonths <= 0)
+					return false;
+
+				try {
+					URI website = new URI(
+							"https://nic.seu.edu.cn/selfservice/service_manage_index.php");
+					HttpPost request = new HttpPost(website);
+					setPostHeader(request);
+
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+							2);
+					nameValuePairs.add(new BasicNameValuePair("operation", "web_delay"));
+					nameValuePairs.add(new BasicNameValuePair("item", "web"));
+					nameValuePairs.add(new BasicNameValuePair("error_info", ""));
+					nameValuePairs.add(new BasicNameValuePair("web_sel", months));
+					request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+					HttpResponse response = client.execute(request);
+					int statusCode = response.getStatusLine().getStatusCode();
+
+					if (statusCode != 200) {
+						Log.d("nic", "payFee " + months + " failed, statusCode:" + String.valueOf(statusCode));
+						return false;
+					}
+
+					String responseStr = EntityUtils.toString(
+							response.getEntity(), "gb2312");
+					errorInfo = findInStr(responseStr, "id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
+				} catch (Exception e) {
+					Log.d("payFee", "Error in http connection " + e.toString());
+					return false;
+				}
+				return true;
 			}
 		}
 	}
@@ -860,6 +950,96 @@ public class MainActivity extends ActionBarActivity implements
 			logList.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, logs));
 			Log.d("autologin", ("DatePickered" + dateStamp));
 		}
+	}
+	
+	public static class PayFeeDialog extends DialogFragment {
+		
+	    public PayFeeDialog() {
+	    }
+
+	    public static PayFeeDialog newInstance(String accountState) {
+	    	PayFeeDialog frag = new PayFeeDialog();
+	        Bundle args = new Bundle();
+	        args.putString("accountState", accountState);
+	        frag.setArguments(args);
+	        return frag;
+	    }
+
+	    @Override
+	    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+	            Bundle savedInstanceState) {
+	        View view = inflater.inflate(R.layout.fragment_edit_name, container);
+	        
+	        final EditText mEditText = (EditText) view.findViewById(R.id.timeEditDialog);
+	        getDialog().setTitle("缴月租费");
+	        // Show soft keyboard automatically
+	        mEditText.requestFocus();
+	        getDialog().getWindow().setSoftInputMode(
+	                WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+
+	        TextView mTextView = (TextView) view.findViewById(R.id.timeTextDialog);
+	        mTextView.setText("个月");
+	        
+	        final String accountState = getArguments().getString("accountState", "");
+	        final Dialog dlg = getDialog();
+	        
+	        Button payButton = (Button) view.findViewById(R.id.payButton);
+	        payButton.setText("缴费");
+	        payButton.setOnClickListener(new View.OnClickListener() {
+	             public void onClick(View v) {
+					try {
+						final int months = Integer.parseInt(mEditText.getText()
+								.toString());
+						if (months <= 0) {
+							Toast.makeText(v.getContext(), "月份不能为负 ！",
+									Toast.LENGTH_LONG).show();
+							return;
+						}
+						AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+						builder.setTitle("确认缴费")
+								.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+											public void onClick(DialogInterface dialog, int which) {
+												nicFragment.payFeeMonths = months;
+												nicFragment.new NicTask(getActivity().getApplicationContext(), "payfee").execute();
+												dlg.dismiss();
+											}
+										})
+								.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+											public void onClick(DialogInterface dialog, int which) {
+												// do nothing
+											}
+										})
+								.setIcon(android.R.drawable.ic_dialog_alert);
+						if (accountState.equals("正常")) {
+							builder.setMessage("您正在进行web认证服务缴纳月租费操作\n\n续租时长："
+									+ months + "个月   总计费用：" + months * 5
+									+ "元\n\n校园网账户扣除费用：" + months * 5
+									+ "元\n\n请注意：费用扣除后将不予以退还，是否继续执行此操作？");
+						} else {
+							builder.setMessage("您正在进行web认证服务开通操作\n\n开通时长："
+									+ months + "个月   总计费用：" + months * 5
+									+ "元\n\n校园网账户扣除费用：" + months * 5
+									+ "元\n\n请注意：费用扣除后将不予以退还，是否继续执行此操作？");
+						}
+						builder.show();
+					}
+					catch (Exception e) {
+						Log.d("PayFeeDialog", "exception:" + e.toString());
+					}
+	             }
+	         });
+	        
+	        return view;
+	    }
+	    
+	    @Override
+	    public void onStop() {
+	        if( getActivity() != null) {
+	            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+	            imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);                          
+	        }
+	        super.onStop();
+	    }
 	}
 
 	public void accountOK(View view) {
