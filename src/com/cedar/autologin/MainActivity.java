@@ -1,5 +1,6 @@
 package com.cedar.autologin;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,7 +38,10 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -57,6 +61,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -361,12 +367,21 @@ public class MainActivity extends ActionBarActivity implements
 			
 			builder = new AlertDialog.Builder(getActivity());
 			new NicTask(getActivity().getApplicationContext(), "initial").execute();
-			
+
 			button_payfee.setOnClickListener(new View.OnClickListener() {
 	             public void onClick(View v) {
 	                 FragmentManager fm = getActivity().getSupportFragmentManager();
 	                 PayFeeDialog editNameDialog = PayFeeDialog.newInstance(accountState);
 	                 editNameDialog.show(fm, "fragment_edit_name");
+	                 
+	             }
+	         });
+			
+			buttonRecharge.setOnClickListener(new View.OnClickListener() {
+	             public void onClick(View v) {
+	                 FragmentManager fm = getActivity().getSupportFragmentManager();
+	                 RechargeDialog rechargeDialog = RechargeDialog.newInstance(account);
+	                 rechargeDialog.show(fm, "fragment_recharge");
 	                 
 	             }
 	         });
@@ -556,10 +571,10 @@ public class MainActivity extends ActionBarActivity implements
 				
 				if (networkError) {
 					Toast.makeText(context.getApplicationContext(),
-							"AutoLogin: 网络错误 !", Toast.LENGTH_LONG).show();
+							"网络错误 !", Toast.LENGTH_LONG).show();
 				} else if (!errorInfo.equals("")) {
 					Toast.makeText(context.getApplicationContext(),
-							"AutoLogin: " + errorInfo, Toast.LENGTH_LONG).show();
+							errorInfo, Toast.LENGTH_LONG).show();
 				}
 				
 	            onRefreshComplete();
@@ -1041,6 +1056,122 @@ public class MainActivity extends ActionBarActivity implements
 	        super.onStop();
 	    }
 	}
+	
+	public static class RechargeDialog extends DialogFragment {
+		
+	    public RechargeDialog() {
+	    }
+
+	    public static RechargeDialog newInstance(String accountCard) {
+	    	RechargeDialog frag = new RechargeDialog();
+	        Bundle args = new Bundle();
+	        args.putString("accountCard", accountCard);
+	        frag.setArguments(args);
+	        return frag;
+	    }
+
+	    @Override
+	    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+	            Bundle savedInstanceState) {
+	        View view = inflater.inflate(R.layout.fragment_recharge, container);
+	        
+	        new DownloadImageTask((ImageView) view.findViewById(R.id.verifyImage))
+            .execute("https://nic.seu.edu.cn/selfservice/verifyCode.php");
+	        
+	        getDialog().setTitle("在线充值");
+
+	        TextView accountCardText = (TextView) view.findViewById(R.id.accountCardRecharge);
+	        String accountCard = getArguments().getString("accountCard", "");
+	        accountCardText.setText(accountCard);
+    
+	        /*
+	        final Dialog dlg = getDialog();
+	        
+	        Button payButton = (Button) view.findViewById(R.id.payButton);
+	        payButton.setText("缴费");
+	        payButton.setOnClickListener(new View.OnClickListener() {
+	             public void onClick(View v) {
+					try {
+						final int months = Integer.parseInt(mEditText.getText()
+								.toString());
+						if (months <= 0) {
+							Toast.makeText(v.getContext(), "月份不能为负 ！",
+									Toast.LENGTH_LONG).show();
+							return;
+						}
+						AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+						builder.setTitle("确认缴费")
+								.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+											public void onClick(DialogInterface dialog, int which) {
+												nicFragment.payFeeMonths = months;
+												nicFragment.new NicTask(getActivity().getApplicationContext(), "payfee").execute();
+												dlg.dismiss();
+											}
+										})
+								.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+											public void onClick(DialogInterface dialog, int which) {
+												// do nothing
+											}
+										})
+								.setIcon(android.R.drawable.ic_dialog_alert);
+						if (accountState.equals("正常")) {
+							builder.setMessage("您正在进行web认证服务缴纳月租费操作\n\n续租时长："
+									+ months + "个月   总计费用：" + months * 5
+									+ "元\n\n校园网账户扣除费用：" + months * 5
+									+ "元\n\n请注意：费用扣除后将不予以退还，是否继续执行此操作？");
+						} else {
+							builder.setMessage("您正在进行web认证服务开通操作\n\n开通时长："
+									+ months + "个月   总计费用：" + months * 5
+									+ "元\n\n校园网账户扣除费用：" + months * 5
+									+ "元\n\n请注意：费用扣除后将不予以退还，是否继续执行此操作？");
+						}
+						builder.show();
+					}
+					catch (Exception e) {
+						Log.d("PayFeeDialog", "exception:" + e.toString());
+					}
+	             }
+	         });
+	         */
+	        
+	        return view;
+	    }
+	    
+	    @Override
+	    public void onStop() {
+	        if( getActivity() != null) {
+	            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+	            imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);                          
+	        }
+	        super.onStop();
+	    }
+
+		private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+			ImageView bmImage;
+
+			public DownloadImageTask(ImageView bmImage) {
+				this.bmImage = bmImage;
+			}
+
+			protected Bitmap doInBackground(String... urls) {
+				String urldisplay = urls[0];
+				Bitmap mIcon11 = null;
+				try {
+					InputStream in = new java.net.URL(urldisplay).openStream();
+					mIcon11 = BitmapFactory.decodeStream(in);
+				} catch (Exception e) {
+					Log.e("Error", e.getMessage());
+					e.printStackTrace();
+				}
+				return mIcon11;
+			}
+
+			protected void onPostExecute(Bitmap result) {
+				Bitmap scaledBitmap = Bitmap.createScaledBitmap(result, result.getWidth()*bmImage.getHeight()/result.getHeight(), bmImage.getHeight(), true);
+				bmImage.setImageBitmap(scaledBitmap);
+			}
+		}
+	}
 
 	public void accountOK(View view) {
 		EditText accountText = (EditText) findViewById(R.id.account_message);
@@ -1069,9 +1200,8 @@ public class MainActivity extends ActionBarActivity implements
 				Log.d("autologin", "wifi connected " + ssid);
 				new LoginTask(getApplicationContext()).execute();
 			}
-			else {
-				Toast.makeText(getApplicationContext(), "保存成功,程序将自动完成Web认证 ~", Toast.LENGTH_LONG).show();
-			}
+			
+			Toast.makeText(getApplicationContext(), "保存成功,程序将自动完成Web认证 ~", Toast.LENGTH_LONG).show();
 		}
 	}
 

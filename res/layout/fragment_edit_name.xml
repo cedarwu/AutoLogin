@@ -17,6 +17,7 @@
             android:layout_height="wrap_content"
             android:imeOptions="actionDone"
             android:inputType="number"
+        	android:ems="2"
             android:paddingRight="@dimen/activity_horizontal_margin" />
 
         <TextView

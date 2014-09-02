@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:stretchMode="columnWidth"  
+    android:layout_gravity="center_horizontal"
+    android:columnCount="3" >
+
+    <TextView
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:text="@string/account_card"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/accountCardRecharge"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:layout_column="0"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:layout_row="1"
+        android:text="@string/query_passwd"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/queryPasswd"
+        android:ems="8"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:imeOptions="actionDone"
+        android:inputType="numberPassword" >
+
+        <requestFocus />
+    </EditText>
+
+    <TextView
+        android:layout_column="0"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:layout_row="2"
+        android:text="@string/recharge_money"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/rechargeMoney"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:ems="8"
+        android:imeOptions="actionDone"
+        android:inputType="number" >
+
+    </EditText>
+    
+    <TextView
+        android:layout_column="0"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:layout_row="3"
+        android:text="@string/verify_code"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/verifyCode"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:ems="8"
+        android:imeOptions="actionDone"
+        android:inputType="number" >
+
+    </EditText>
+
+    <ImageView
+        android:id="@+id/verifyImage"
+        android:layout_column="2"
+        android:layout_row="3"
+        android:layout_columnSpan="1"
+        android:layout_rowSpan="1"
+        android:contentDescription="@string/verify_code"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+        android:src="@drawable/damaged"
+        android:scaleType="centerCrop"
+        android:adjustViewBounds="true" />
+
+    <Button
+        android:id="@+id/buttonBack"
+        android:layout_column="0"
+        android:layout_gravity="right"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:layout_row="4"
+        android:text="@string/button_back" />
+    
+    <Button
+        android:id="@+id/buttonYes"
+        android:layout_column="1"
+        android:layout_gravity="right"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:text="@string/button_yes" />
+    
+</GridLayout>
