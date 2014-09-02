@@ -1,6 +1,6 @@
 package com.cedar.autologin;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -9,11 +9,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -41,7 +43,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -62,7 +63,6 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ImageView.ScaleType;
 import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -285,6 +285,7 @@ public class MainActivity extends ActionBarActivity implements
 		String usage = new String("");
 		String expireDate = new String("");
 		String remainMoney = new String("");
+		String ecardMoney = new String("");
 		
 		ArrayList<OnlineDevice> onlineDevices = new ArrayList<OnlineDevice>();
 
@@ -302,6 +303,7 @@ public class MainActivity extends ActionBarActivity implements
 		Button button_payfee;
 		TextView remainMoneyText;
 		Button buttonRecharge;
+		//TextView ecardMoneyText;
 		
 		AlertDialog.Builder builder;
 		NicFragment nic = this;
@@ -311,6 +313,9 @@ public class MainActivity extends ActionBarActivity implements
 		String nas_ip_address = new String("");
 		
 		int payFeeMonths = 0;
+		String queryPasswd = new String("");
+   	 	String rechargeMoney = new String("");
+   	 	String verifyCode = new String("");
 
 		public static NicFragment newInstance(int sectionNumber) {
 			NicFragment fragment = new NicFragment();
@@ -364,6 +369,7 @@ public class MainActivity extends ActionBarActivity implements
 			button_payfee = (Button) getActivity().findViewById(R.id.button_payfee);
 			remainMoneyText = (TextView) getActivity().findViewById(R.id.remainMoney);
 			buttonRecharge = (Button) getActivity().findViewById(R.id.buttonRecharge);
+			//ecardMoneyText = (TextView) getActivity().findViewById(R.id.ecardMoney);
 			
 			builder = new AlertDialog.Builder(getActivity());
 			new NicTask(getActivity().getApplicationContext(), "initial").execute();
@@ -403,6 +409,7 @@ public class MainActivity extends ActionBarActivity implements
 	    	usageText.setText("");
 	    	expireDateText.setText("");
 	    	remainMoneyText.setText("");
+	    	//ecardMoneyText.setText("");
 	    	
 	    	onlineTable.removeAllViews();
 	    	onlineTable.removeAllViewsInLayout();
@@ -415,15 +422,21 @@ public class MainActivity extends ActionBarActivity implements
 			usage = new String("");
 			expireDate = new String("");
 			remainMoney = new String("");
+			ecardMoney = new String("");
 			onlineDevices = new ArrayList<OnlineDevice>();
+			
+			payFeeMonths = 0;
+			queryPasswd = new String("");
+	   	 	rechargeMoney = new String("");
+	   	 	verifyCode = new String("");
 			
 			client = getHttpClient();
 	    }
 
 		public DefaultHttpClient getHttpClient() {
 			BasicHttpParams httpParams = new BasicHttpParams();
-			HttpConnectionParams.setConnectionTimeout(httpParams, 5000);
-			HttpConnectionParams.setSoTimeout(httpParams, 5000);
+			HttpConnectionParams.setConnectionTimeout(httpParams, 10000);
+			HttpConnectionParams.setSoTimeout(httpParams, 10000);
 			DefaultHttpClient client = new DefaultHttpClient(httpParams);
 			return client;
 		}
@@ -487,6 +500,9 @@ public class MainActivity extends ActionBarActivity implements
 					payFee();
 					getExpireDate();
 				}
+				if (action.equals("recharge")) {
+					recharge();
+				}
 				getStates();
 				return true;
 			}
@@ -499,6 +515,7 @@ public class MainActivity extends ActionBarActivity implements
 					usageText.setText(usage);
 					expireDateText.setText(expireDate);
 					remainMoneyText.setText(remainMoney);
+					//ecardMoneyText.setText(ecardMoney);
 					
 					onlineTable.removeAllViews();
 					onlineTable.removeAllViewsInLayout();
@@ -746,6 +763,97 @@ public class MainActivity extends ActionBarActivity implements
 				}
 			}
 			
+			public Boolean getCardMoney() {
+				if (networkError)
+					return false;
+				try {
+
+					DefaultHttpClient seuClient = getHttpClient();
+
+					//seuClient.getParams().setParameter(ClientPNames.COOKIE_POLICY,CookiePolicy.BROWSER_COMPATIBILITY);
+					//seuClient.setCookieStore(new BasicCookieStore());
+					HttpHost proxy = new HttpHost("192.168.155.1", 8080);
+					seuClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
+
+					URI website = new URI(
+							"http://my.seu.edu.cn/");
+					
+					HttpGet request2 = new HttpGet(website);
+					setGetHeader(request2);
+
+					HttpResponse response = seuClient.execute(request2);
+					int statusCode = response.getStatusLine().getStatusCode();
+					
+					if (statusCode != 200) {
+						Log.d("myseu", "logged2 failed, statusCode:"
+								+ String.valueOf(statusCode));
+						return false;
+					}
+
+					response.getEntity().consumeContent();
+					
+					website = new URI(
+							"http://my.seu.edu.cn/userPasswordValidate.portal");
+
+					HttpPost request = new HttpPost(website);
+					setPostHeader(request);
+					
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+							2);
+					nameValuePairs.add(new BasicNameValuePair("Login.Token1",
+							account));
+					nameValuePairs.add(new BasicNameValuePair("Login.Token2",
+							passwd));
+					request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+					
+					response = seuClient.execute(request);
+					statusCode = response.getStatusLine().getStatusCode();
+					
+					if (statusCode != 200) {
+						Log.d("myseu", "logged failed, statusCode:"
+								+ String.valueOf(statusCode));
+						return false;
+					}
+					
+					response.getEntity().consumeContent();
+					
+					//CookieStore cookie = seuClient.getCookieStore();
+
+					//Log.d("old cookie", cookie.getCookies().toString());
+					
+					Log.d("cookie", seuClient.getCookieStore().toString());
+					
+					website = new URI(
+							"http://allinonecard.seu.edu.cn/accounttranUser.action");
+					
+					request2 = new HttpGet(website);
+					setGetHeader(request2);
+					response = seuClient.execute(request2);
+					
+					statusCode = response.getStatusLine().getStatusCode();
+					
+					if (statusCode != 200) {
+						Log.d("myseu", "getEMoney failed, statusCode:"
+								+ String.valueOf(statusCode));
+						return false;
+					}
+
+					String responseStr = EntityUtils.toString(
+							response.getEntity(), "gb2312");
+
+					ecardMoney = findInStr(responseStr, 
+							"电子钱包</div></td>\\s+<td width = \"25%\" height=\"16\" align=\"right\" valign=\"middle\"><div align=\"center\">([\\d\\.])+</div></td>");
+					
+					return true;
+
+				} catch (Exception e) {
+					Log.d("getCardMoney",
+							"Error in http connection " + e.toString());
+					networkError = true;
+					return false;
+				}
+			}
+			
 			private Boolean checkCookie(DefaultHttpClient client) {
 				ArrayList<String> cookieNames = new ArrayList<String>();
 				for(Cookie cookie: client.getCookieStore().getCookies()) {
@@ -759,8 +867,9 @@ public class MainActivity extends ActionBarActivity implements
 					return false;
 				}
 			}
-			
-			String userAgent = new String("Mozilla/5.0 (Android " + android.os.Build.VERSION.RELEASE + ") AutoLogin/" + version);
+
+			//String userAgent = new String("Mozilla/5.0 (Android " + android.os.Build.VERSION.RELEASE + ") AutoLogin/" + version);
+			String userAgent = new String("Mozilla/5.0 (Windows NT 6.2; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
 
 			private void setGetHeader(HttpGet request) {
 				request.setHeader("User-Agent", userAgent);
@@ -843,7 +952,7 @@ public class MainActivity extends ActionBarActivity implements
 					return;
 				}
 			}
-			
+
 			Boolean payFee() {
 				String months = String.valueOf(payFeeMonths);
 				//Log.d("payFee", months);
@@ -876,6 +985,51 @@ public class MainActivity extends ActionBarActivity implements
 					String responseStr = EntityUtils.toString(
 							response.getEntity(), "gb2312");
 					errorInfo = findInStr(responseStr, "id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
+				} catch (Exception e) {
+					Log.d("payFee", "Error in http connection " + e.toString());
+					return false;
+				}
+				return true;
+			}
+			
+			Boolean recharge() {
+				if (queryPasswd.equals("") || rechargeMoney.equals("") || verifyCode.equals(""))
+					return false;
+
+				try {
+					URI website = new URI(
+							"https://nic.seu.edu.cn/selfservice/service_recharge_rfid.php");
+					HttpPost request = new HttpPost(website);
+					setPostHeader(request);
+
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+							2);
+					nameValuePairs.add(new BasicNameValuePair("password", queryPasswd));
+					nameValuePairs.add(new BasicNameValuePair("amount", rechargeMoney));
+					nameValuePairs.add(new BasicNameValuePair("verify_code", verifyCode));
+					request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+					HttpResponse response = client.execute(request);
+					int statusCode = response.getStatusLine().getStatusCode();
+
+					if (statusCode != 200) {
+						Log.d("nic", "recharge failed, statusCode:" + String.valueOf(statusCode));
+						return false;
+					}
+
+					String responseStr = EntityUtils.toString(
+							response.getEntity(), "gb2312");
+					//Log.d("recharge", responseStr);
+					if (responseStr.contains("<img src=\"image/recharge_success.gif\">")) {
+						Pattern pattern = Pattern.compile("电子钱包.+帐户余额</strong></td>\\s+<td align=\"center\" bgcolor=\"#FFFFFF\">([\\d\\.]+ 元)</td>", Pattern.DOTALL);
+						Matcher matcher = pattern.matcher(responseStr);
+						if (matcher.find()) {
+							errorInfo = "充值成功，电子钱包余额为：" +  matcher.group(1);
+						}
+					}
+					else {
+						errorInfo = findInStr(responseStr, "id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
+					}
 				} catch (Exception e) {
 					Log.d("payFee", "Error in http connection " + e.toString());
 					return false;
@@ -1084,55 +1238,28 @@ public class MainActivity extends ActionBarActivity implements
 	        String accountCard = getArguments().getString("accountCard", "");
 	        accountCardText.setText(accountCard);
     
-	        /*
 	        final Dialog dlg = getDialog();
-	        
-	        Button payButton = (Button) view.findViewById(R.id.payButton);
-	        payButton.setText("缴费");
-	        payButton.setOnClickListener(new View.OnClickListener() {
+
+	        Button backButton = (Button) view.findViewById(R.id.buttonBack);
+	        backButton.setOnClickListener(new View.OnClickListener() {
 	             public void onClick(View v) {
-					try {
-						final int months = Integer.parseInt(mEditText.getText()
-								.toString());
-						if (months <= 0) {
-							Toast.makeText(v.getContext(), "月份不能为负 ！",
-									Toast.LENGTH_LONG).show();
-							return;
-						}
-						AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-						builder.setTitle("确认缴费")
-								.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-											public void onClick(DialogInterface dialog, int which) {
-												nicFragment.payFeeMonths = months;
-												nicFragment.new NicTask(getActivity().getApplicationContext(), "payfee").execute();
-												dlg.dismiss();
-											}
-										})
-								.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-											public void onClick(DialogInterface dialog, int which) {
-												// do nothing
-											}
-										})
-								.setIcon(android.R.drawable.ic_dialog_alert);
-						if (accountState.equals("正常")) {
-							builder.setMessage("您正在进行web认证服务缴纳月租费操作\n\n续租时长："
-									+ months + "个月   总计费用：" + months * 5
-									+ "元\n\n校园网账户扣除费用：" + months * 5
-									+ "元\n\n请注意：费用扣除后将不予以退还，是否继续执行此操作？");
-						} else {
-							builder.setMessage("您正在进行web认证服务开通操作\n\n开通时长："
-									+ months + "个月   总计费用：" + months * 5
-									+ "元\n\n校园网账户扣除费用：" + months * 5
-									+ "元\n\n请注意：费用扣除后将不予以退还，是否继续执行此操作？");
-						}
-						builder.show();
-					}
-					catch (Exception e) {
-						Log.d("PayFeeDialog", "exception:" + e.toString());
-					}
+	            	 dlg.dismiss();
 	             }
 	         });
-	         */
+	        
+	        Button yesButton = (Button) view.findViewById(R.id.buttonYes);
+	        yesButton.setOnClickListener(new View.OnClickListener() {
+	             public void onClick(View v) {
+	            	 String passwd = ((TextView)dlg.findViewById(R.id.queryPasswd)).getText().toString();
+	            	 String money = ((TextView)dlg.findViewById(R.id.rechargeMoney)).getText().toString();
+	            	 String code = ((TextView)dlg.findViewById(R.id.verifyCode)).getText().toString();
+	            	 nicFragment.queryPasswd = passwd;
+	            	 nicFragment.rechargeMoney = money;
+	            	 nicFragment.verifyCode = code;
+	            	 nicFragment.new NicTask(getActivity().getApplicationContext(), "recharge").execute();
+	            	 dlg.dismiss();
+	             }
+	         });
 	        
 	        return view;
 	    }
@@ -1155,15 +1282,24 @@ public class MainActivity extends ActionBarActivity implements
 
 			protected Bitmap doInBackground(String... urls) {
 				String urldisplay = urls[0];
-				Bitmap mIcon11 = null;
+				Bitmap mIcon = null;
 				try {
-					InputStream in = new java.net.URL(urldisplay).openStream();
-					mIcon11 = BitmapFactory.decodeStream(in);
+					HttpGet request = new HttpGet(urldisplay);
+					HttpResponse response = nicFragment.client.execute(request);
+					int statusCode = response.getStatusLine().getStatusCode();
+					
+					if (statusCode != 200) {
+						Log.d("DownloadImageTask", "failed, statusCode:"
+								+ String.valueOf(statusCode));
+						throw new IOException("Data Not Found");
+					}
+					mIcon = BitmapFactory.decodeStream(response.getEntity().getContent());
+					response.getEntity().consumeContent();
 				} catch (Exception e) {
 					Log.e("Error", e.getMessage());
 					e.printStackTrace();
 				}
-				return mIcon11;
+				return mIcon;
 			}
 
 			protected void onPostExecute(Bitmap result) {
