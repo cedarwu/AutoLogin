@@ -21,9 +21,9 @@
     <string name="button_unlock">流量解锁</string>
     <string name="button_payfee">缴月租费</string>
     <string name="button_recharge">在线充值</string>
-    <string name="query_passwd">查询密码:</string>
-    <string name="recharge_money">充值金额:</string>
-    <string name="verify_code">校 验 码:</string>
+    <string name="query_passwd">查询密码：</string>
+    <string name="recharge_money">充值金额：</string>
+    <string name="verify_code">校 验 码：</string>
     <string name="button_back">返回</string>
     <string name="button_yes">确定</string>
 

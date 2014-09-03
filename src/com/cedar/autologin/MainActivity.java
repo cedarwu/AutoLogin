@@ -56,6 +56,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
@@ -169,6 +170,9 @@ public class MainActivity extends ActionBarActivity implements
 		if( this.getCurrentFocus() != null) {
 			imm.hideSoftInputFromWindow(
 					this.getCurrentFocus().getWindowToken(), 0);
+		}
+		if (tab.getPosition() == 2) {
+			logFragment.refresh();
 		}
 		mViewPager.setCurrentItem(tab.getPosition());
 	}
@@ -371,8 +375,17 @@ public class MainActivity extends ActionBarActivity implements
 			buttonRecharge = (Button) getActivity().findViewById(R.id.buttonRecharge);
 			//ecardMoneyText = (TextView) getActivity().findViewById(R.id.ecardMoney);
 			
+			onlineTable.setStretchAllColumns(true);
+			
 			builder = new AlertDialog.Builder(getActivity());
 			new NicTask(getActivity().getApplicationContext(), "initial").execute();
+
+			button_unlock.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					Toast.makeText(getActivity().getApplicationContext(),
+							"尚未实现", Toast.LENGTH_LONG).show();
+				}
+			});
 
 			button_payfee.setOnClickListener(new View.OnClickListener() {
 	             public void onClick(View v) {
@@ -493,16 +506,22 @@ public class MainActivity extends ActionBarActivity implements
 				}
 				if (stopped)
 					return false;
-				//if (action.equals("initial"))
-				if (action.equals("offline"))
-					offline();
+				SQLiteHelper db = new SQLiteHelper(context);
+				if (action.equals("offline")) {
+					if (offline())
+						db.addLog("下线 " + kick_ip_address + " 成功");
+				}
 				if (action.equals("payfee")) {
-					payFee();
+					if (payFee())
+						db.addLog("缴月租费  " + String.valueOf(payFeeMonths) + " 个月 成功");
 					getExpireDate();
 				}
 				if (action.equals("recharge")) {
-					recharge();
+					if (recharge()) {
+						db.addLog("在线充值  " + rechargeMoney + " 元  成功");
+					}
 				}
+				// default action is "initial"
 				getStates();
 				return true;
 			}
@@ -535,7 +554,7 @@ public class MainActivity extends ActionBarActivity implements
 						setTextView(t3, "\tMAC地址");
 						row.addView(t3);
 						
-						onlineTable.addView(row,new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)); 
+						onlineTable.addView(row,new TableLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)); 
 					}
 					for (OnlineDevice device : onlineDevices) {
 						TableRow row = new TableRow(context);
@@ -580,7 +599,7 @@ public class MainActivity extends ActionBarActivity implements
 				         });
 						row.addView(b);
 						
-						onlineTable.addView(row,new TableLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)); 
+						onlineTable.addView(row,new TableLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)); 
 					}
 				} else {
 					accountStateText.setText("欠费停用,请缴纳月租费");
@@ -763,6 +782,7 @@ public class MainActivity extends ActionBarActivity implements
 				}
 			}
 			
+			//not used
 			public Boolean getCardMoney() {
 				if (networkError)
 					return false;
@@ -868,8 +888,8 @@ public class MainActivity extends ActionBarActivity implements
 				}
 			}
 
-			//String userAgent = new String("Mozilla/5.0 (Android " + android.os.Build.VERSION.RELEASE + ") AutoLogin/" + version);
-			String userAgent = new String("Mozilla/5.0 (Windows NT 6.2; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
+			String userAgent = new String("Mozilla/5.0 (Android " + android.os.Build.VERSION.RELEASE + ") AutoLogin/" + version);
+			//String userAgent = new String("Mozilla/5.0 (Windows NT 6.2; WOW64; rv:29.0) Gecko/20100101 Firefox/29.0");
 
 			private void setGetHeader(HttpGet request) {
 				request.setHeader("User-Agent", userAgent);
@@ -901,19 +921,19 @@ public class MainActivity extends ActionBarActivity implements
 			void setTextView(TextView t, String s) {
 
 				t.setText(s);
-				t.setTextAppearance(context, android.R.style.TextAppearance_Medium);
+				//t.setTextAppearance(context, android.R.style.TextAppearance_Medium);
 				t.setTextColor(Color.BLACK);
 				
 				TableRow.LayoutParams params = new TableRow.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-				params.setMargins(20, 0, 20, 0);
+				params.setMargins(10, 0, 10, 0);
 				t.setLayoutParams(params);
 			}
 			
-			void offline() {
+			Boolean offline() {
 				Log.d("offline", kick_ip_address);
 				
 				if (kick_ip_address.equals("") || session_id.equals("") || nas_ip_address.equals(""))
-					return;
+					return false;
 
 				try {
 					URI website = new URI(
@@ -941,16 +961,18 @@ public class MainActivity extends ActionBarActivity implements
 
 					if (statusCode != 200) {
 						Log.d("nic", "offline " + kick_ip_address + " failed, statusCode:" + String.valueOf(statusCode));
-						return;
+						return false;
 					}
 					
 					String responseStr = EntityUtils.toString(
 							response.getEntity(), "gb2312");
 					errorInfo = findInStr(responseStr, "id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
+					if (errorInfo.equals(""))
+						return true;
 				} catch (Exception e) {
 					Log.d("offline", "Error in http connection " + e.toString());
-					return;
 				}
+				return false;
 			}
 
 			Boolean payFee() {
@@ -985,11 +1007,12 @@ public class MainActivity extends ActionBarActivity implements
 					String responseStr = EntityUtils.toString(
 							response.getEntity(), "gb2312");
 					errorInfo = findInStr(responseStr, "id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
+					if (errorInfo.equals(""))
+						return true;
 				} catch (Exception e) {
 					Log.d("payFee", "Error in http connection " + e.toString());
-					return false;
 				}
-				return true;
+				return false;
 			}
 			
 			Boolean recharge() {
@@ -1026,15 +1049,16 @@ public class MainActivity extends ActionBarActivity implements
 						if (matcher.find()) {
 							errorInfo = "充值成功，电子钱包余额为：" +  matcher.group(1);
 						}
+						return true;
 					}
 					else {
-						errorInfo = findInStr(responseStr, "id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
+						errorInfo = findInStr(responseStr, "id=\"error_info\" value=\"(\\S+)\">");
+						return false;
 					}
 				} catch (Exception e) {
 					Log.d("payFee", "Error in http connection " + e.toString());
-					return false;
 				}
-				return true;
+				return false;
 			}
 		}
 	}
@@ -1070,14 +1094,7 @@ public class MainActivity extends ActionBarActivity implements
 			return rootView;
 		}
 
-		@Override
-		public void onActivityCreated(Bundle savedInstanceState) {
-			super.onActivityCreated(savedInstanceState);
-		}
-
-		@Override
-		public void onStart() {
-			super.onStart();
+		public void refresh() {
 			SQLiteHelper db = new SQLiteHelper(getActivity());
 			String dateStamp = new SimpleDateFormat("yyyyMMdd",
 					java.util.Locale.getDefault()).format(Calendar
@@ -1151,6 +1168,15 @@ public class MainActivity extends ActionBarActivity implements
 	        
 	        final String accountState = getArguments().getString("accountState", "");
 	        final Dialog dlg = getDialog();
+
+
+	        Button backButton = (Button) view.findViewById(R.id.backButton);
+	        backButton.setText("返回");
+	        backButton.setOnClickListener(new View.OnClickListener() {
+	             public void onClick(View v) {
+	            	 dlg.dismiss();
+	             }
+	        });
 	        
 	        Button payButton = (Button) view.findViewById(R.id.payButton);
 	        payButton.setText("缴费");
@@ -1160,7 +1186,7 @@ public class MainActivity extends ActionBarActivity implements
 						final int months = Integer.parseInt(mEditText.getText()
 								.toString());
 						if (months <= 0) {
-							Toast.makeText(v.getContext(), "月份不能为负 ！",
+							Toast.makeText(v.getContext(), "月份必须为正 ！",
 									Toast.LENGTH_LONG).show();
 							return;
 						}
@@ -1205,7 +1231,12 @@ public class MainActivity extends ActionBarActivity implements
 	    public void onStop() {
 	        if( getActivity() != null) {
 	            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-	            imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);                          
+	            View v = getActivity().getCurrentFocus();
+	            Window w = getActivity().getWindow();
+	            if (v != null) 
+	            	imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+	            if (w != null)
+	            	w.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 	        }
 	        super.onStop();
 	    }
@@ -1268,7 +1299,12 @@ public class MainActivity extends ActionBarActivity implements
 	    public void onStop() {
 	        if( getActivity() != null) {
 	            InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-	            imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);                          
+	            View v = getActivity().getCurrentFocus();
+	            Window w = getActivity().getWindow();
+	            if (v != null) 
+	            	imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+	            if (w != null)
+	            	w.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 	        }
 	        super.onStop();
 	    }
@@ -1303,8 +1339,11 @@ public class MainActivity extends ActionBarActivity implements
 			}
 
 			protected void onPostExecute(Bitmap result) {
-				Bitmap scaledBitmap = Bitmap.createScaledBitmap(result, result.getWidth()*bmImage.getHeight()/result.getHeight(), bmImage.getHeight(), true);
-				bmImage.setImageBitmap(scaledBitmap);
+				Bitmap scaledBitmap = null;
+				if (result != null) {
+					scaledBitmap = Bitmap.createScaledBitmap(result, bmImage.getWidth()*2, result.getHeight()*2*bmImage.getWidth()/result.getWidth(), true);
+					bmImage.setImageBitmap(scaledBitmap);
+				}
 			}
 		}
 	}
