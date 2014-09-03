@@ -504,8 +504,6 @@ public class MainActivity extends ActionBarActivity implements
 						return false;
 					}
 				}
-				if (stopped)
-					return false;
 				SQLiteHelper db = new SQLiteHelper(context);
 				if (action.equals("offline")) {
 					if (offline())
@@ -603,6 +601,7 @@ public class MainActivity extends ActionBarActivity implements
 					}
 				} else {
 					accountStateText.setText("欠费停用,请缴纳月租费");
+					remainMoneyText.setText(remainMoney);
 				}
 				
 				if (networkError) {
