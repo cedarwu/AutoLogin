@@ -637,9 +637,14 @@ public class MainActivity extends ActionBarActivity implements
 					HttpResponse response = client.execute(request);
 					int statusCode = response.getStatusLine().getStatusCode();
 					
-					if (statusCode != 200) {
+					if (statusCode == 403) {
+						errorInfo = "请使用校园网";
+						response.getEntity().consumeContent();
+						return false;
+					} else if (statusCode != 200) {
 						Log.d("nic", "logged failed, statusCode:"
 								+ String.valueOf(statusCode));
+						response.getEntity().consumeContent();
 						return false;
 					}
 
@@ -652,7 +657,7 @@ public class MainActivity extends ActionBarActivity implements
 
 					String responseStr = EntityUtils.toString(
 							response.getEntity(), "gb2312");
-					//Log.d("autologin", "login response:" + responseStr);
+					Log.d("autologin", "login response:" + responseStr);
 					if (responseStr.contains("到期时间")) {
 						Pattern p = Pattern.compile("<br>到期时间为<br>([\\d-]+)</td>");
 						Matcher m = p.matcher(responseStr);

@@ -103,6 +103,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			HttpClient client = new DefaultHttpClient();
 			URI website = new URI("https://w.seu.edu.cn/portal/init.php");
 			HttpGet request = new HttpGet();
+			request.setHeader("User-Agent", "Mozilla/5.0 (Android " + android.os.Build.VERSION.RELEASE + ") AutoLogin/2.0");
 			request.setURI(website);
 			HttpResponse response = client.execute(request);
 			// int statusCode = response.getStatusLine().getStatusCode();
@@ -136,6 +137,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			nameValuePairs.add(new BasicNameValuePair("username", account));
 			nameValuePairs.add(new BasicNameValuePair("password", passwd));
 			request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			request.setHeader("User-Agent", "Mozilla/5.0 (Android " + android.os.Build.VERSION.RELEASE + ") AutoLogin/2.0");
 
 			// Execute HTTP Post Request
 			HttpResponse response = client.execute(request);
