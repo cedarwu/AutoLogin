@@ -34,7 +34,15 @@
         
         <activity
             android:name="com.cedar.autologin.SelectSsidActivity"
-            android:label="@string/select_ssid" >
+        	android:icon="@android:color/transparent"
+            android:label="@string/select_ssid"
+            android:parentActivityName="com.cedar.autologin.MainActivity" >
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.cedar.autologin.MainActivity" />
+
         </activity>
         
     </application>

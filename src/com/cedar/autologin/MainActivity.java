@@ -661,7 +661,7 @@ public class MainActivity extends ActionBarActivity implements
 
 					String responseStr = EntityUtils.toString(
 							response.getEntity(), "gb2312");
-					Log.d("autologin", "login response:" + responseStr);
+					//Log.d("autologin", "login response:" + responseStr);
 					if (responseStr.contains("到期时间")) {
 						Pattern p = Pattern.compile("<br>到期时间为<br>([\\d-]+)</td>");
 						Matcher m = p.matcher(responseStr);
@@ -849,7 +849,7 @@ public class MainActivity extends ActionBarActivity implements
 
 					//Log.d("old cookie", cookie.getCookies().toString());
 					
-					Log.d("cookie", seuClient.getCookieStore().toString());
+					//Log.d("cookie", seuClient.getCookieStore().toString());
 					
 					website = new URI(
 							"http://allinonecard.seu.edu.cn/accounttranUser.action");

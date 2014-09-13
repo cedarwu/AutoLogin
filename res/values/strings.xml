@@ -25,6 +25,10 @@
     <string name="button_back">返回</string>
     <string name="button_yes">确定</string>
     <string name="button_add">+</string>
+    <string name="button_rm">-</string>
     <string name="ssid_selection">选择SSID</string>
+    <string name="input_ssid">手动输入SSID</string>
+    <string name="select_from_list">从WiFi列表选择</string>
+    <string name="or">或</string>
 
 </resources>
