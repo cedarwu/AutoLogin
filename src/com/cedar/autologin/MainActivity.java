@@ -153,7 +153,11 @@ public class MainActivity extends ActionBarActivity implements
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_about) {
+		if (id == R.id.select_ssid) {
+		    startActivity(new Intent(this, SelectSsidActivity.class));  
+			return true;
+		}
+		else if (id == R.id.action_about) {
 			Uri uri = Uri.parse("http://autologin.cedar.tk");  
 		    startActivity(new Intent(Intent.ACTION_VIEW, uri));  
 			return true;

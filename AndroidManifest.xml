@@ -32,6 +32,11 @@
             </intent-filter>
         </receiver>
         
+        <activity
+            android:name="com.cedar.autologin.SelectSsidActivity"
+            android:label="@string/select_ssid" >
+        </activity>
+        
     </application>
 
 </manifest>
