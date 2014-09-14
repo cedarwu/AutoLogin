@@ -1,23 +1,25 @@
 package com.cedar.autologin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -32,6 +34,7 @@ import android.widget.TextView;
 public class SelectSsidActivity extends ActionBarActivity implements WifiListFragment.onDlgListClick, AddDialog.onDlgListClick {
 	
 	ListView ssidList = null;
+	SsidAdapter adapter = null;
 	Button addButton = null;
 	ArrayList<String> ssidArray = null;
 
@@ -41,16 +44,15 @@ public class SelectSsidActivity extends ActionBarActivity implements WifiListFra
 		setContentView(R.layout.select_ssid);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
-		String[] ssids={"seu-wlan"};
-		ssidArray = new ArrayList<String>();
 		
-		for(int i=0;i<ssids.length;i++){
-			 ssidArray.add(ssids[i]);
-		}
+		SharedPreferences sp = getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+		Set<String> ssidSet = sp.getStringSet("ssid", new HashSet<String>(Arrays.asList("seu-wlan")));
+		ssidArray = new ArrayList<String>();
+		ssidArray.addAll(ssidSet);
 		
 		ssidList = (ListView) findViewById(R.id.ssidList);
 		if (ssidList != null) {
-			SsidAdapter adapter = new SsidAdapter(this, ssidArray);
+			adapter = new SsidAdapter(this, ssidArray);
 			ssidList.setAdapter(adapter);
 		}
 		
@@ -67,10 +69,17 @@ public class SelectSsidActivity extends ActionBarActivity implements WifiListFra
 	@Override
 	protected void onPause() {
 		super.onPause();
-		/*
-		 * SharedPreferences.Editor ed = mPrefs.edit(); ed.putInt("view_mode",
-		 * mCurViewMode); ed.commit();
-		 */
+		
+		Set<String> ssidSet = new HashSet<String>();
+		for (int i=0; i<adapter.getCount(); i++) {
+			ssidSet.add(adapter.getItem(i));
+		}
+		
+	    SharedPreferences.Editor editor = getSharedPreferences("userInfo", Context.MODE_PRIVATE).edit();
+	    editor.putStringSet("ssid", ssidSet);
+
+	    editor.commit();
+	    Log.d("ssidSet", ssidSet.toString());
 	}
 
 	@Override
@@ -80,7 +89,7 @@ public class SelectSsidActivity extends ActionBarActivity implements WifiListFra
 			return;
 		ssidArray.add(ssid);
 		 
-		SsidAdapter adapter = new SsidAdapter(this, ssidArray);
+		adapter = new SsidAdapter(this, ssidArray);
 		ssidList.setAdapter(adapter);
         adapter.notifyDataSetChanged();
 	}
@@ -99,7 +108,7 @@ public class SelectSsidActivity extends ActionBarActivity implements WifiListFra
 			return listItems.size();
 		}
 
-		public Object getItem(int position) {
+		public String getItem(int position) {
 			return listItems.get(position);
 		}
 

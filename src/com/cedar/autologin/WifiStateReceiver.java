@@ -1,12 +1,16 @@
 package com.cedar.autologin;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.http.message.BasicNameValuePair;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.NetworkInfo;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.SystemClock;
 import android.util.Log;
@@ -24,17 +28,27 @@ public class WifiStateReceiver extends BroadcastReceiver {
 			}
 			else if (info.isConnected()) {
 				WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-				WifiInfo wifiInfo = wifi_service.getConnectionInfo();
-				if (wifiInfo.getSSID().equals(ssid) || wifiInfo.getSSID().equals("\"" + ssid + "\"")) {
-					Log.d("autologin", "wifi connected " + wifiInfo.getSSID());
+				String ssid = wifi_service.getConnectionInfo().getSSID();
+				if (ssid.startsWith("\"") && ssid.endsWith("\"")){
+					ssid = ssid.substring(1, ssid.length()-1);
+				}
+				SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+				Set<String> ssidSet = sp.getStringSet("ssid", new HashSet<String>(Arrays.asList("seu-wlan")));
+				if (ssidSet.contains(ssid)) {
+					Log.d("autologin", "wifi connected to " + ssid);
 					new LoginTask(context).execute();
 				}
 			}
 		} else if (intent.getAction().equals("com.cedar.autologin.unknownhostBroadcast")) {
 			SystemClock.sleep(404);
 			WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-			WifiInfo wifiInfo = wifi_service.getConnectionInfo();
-			if (wifiInfo.getSSID().equals(ssid) || wifiInfo.getSSID().equals("\"" + ssid + "\"")) {
+			String ssid = wifi_service.getConnectionInfo().getSSID();
+			if (ssid.startsWith("\"") && ssid.endsWith("\"")){
+				ssid = ssid.substring(1, ssid.length()-1);
+			}
+			SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+			Set<String> ssidSet = sp.getStringSet("ssid", new HashSet<String>(Arrays.asList("seu-wlan")));
+			if (ssidSet.contains(ssid)) {
 				String retrys = intent.getStringExtra("retrys");
 				BasicNameValuePair retrysInfo = new BasicNameValuePair("retrys", retrys);
 				new LoginTask(context).execute(retrysInfo);
