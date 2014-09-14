@@ -5,8 +5,8 @@
     android:versionName="2.0" >
 
     <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="19" />
+        android:minSdkVersion="12"
+        android:targetSdkVersion="20" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
 
@@ -37,7 +37,6 @@
         	android:icon="@android:color/transparent"
             android:label="@string/select_ssid"
             android:parentActivityName="com.cedar.autologin.MainActivity" >
-
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

@@ -12,10 +12,12 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -27,7 +29,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class SelectSsidActivity extends FragmentActivity implements WifiListFragment.onDlgListClick, AddDialog.onDlgListClick {
+public class SelectSsidActivity extends ActionBarActivity implements WifiListFragment.onDlgListClick, AddDialog.onDlgListClick {
 	
 	ListView ssidList = null;
 	Button addButton = null;
@@ -37,7 +39,7 @@ public class SelectSsidActivity extends FragmentActivity implements WifiListFrag
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.select_ssid);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		
 		String[] ssids={"seu-wlan"};
 		ssidArray = new ArrayList<String>();
@@ -86,10 +88,10 @@ public class SelectSsidActivity extends FragmentActivity implements WifiListFrag
 	private class SsidAdapter extends BaseAdapter {
 
 		private List<String> listItems;
-		private LayoutInflater listContainer;
+		private LayoutInflater inflater;
 
 		public SsidAdapter(Context context, List<String> listItems) {
-			listContainer = LayoutInflater.from(context);
+			inflater = LayoutInflater.from(context);
 			this.listItems = listItems;
 		}
 
@@ -109,7 +111,7 @@ public class SelectSsidActivity extends FragmentActivity implements WifiListFrag
 			final int selectID = position;
 			
 		    if (convertView == null) {
-		    	convertView = listContainer.inflate(R.layout.ssid_info, null);
+		    	convertView = inflater.inflate(R.layout.ssid_info, parent, false);
 		    }
 
 		    TextView ssidText = (TextView) convertView.findViewById(R.id.ssid_name);

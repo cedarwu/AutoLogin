@@ -346,7 +346,7 @@ public class MainActivity extends ActionBarActivity implements
 			View rootView = inflater.inflate(R.layout.fragment_nic, container, false);
 			
 			mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container);
-			mSwipeRefreshLayout.setColorScheme(android.R.color.holo_blue_bright, 
+			mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, 
 	                android.R.color.holo_green_light, 
 	                android.R.color.holo_orange_light, 
 	                android.R.color.holo_red_light);
