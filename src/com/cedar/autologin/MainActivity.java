@@ -75,7 +75,7 @@ import android.widget.Toast;
 public class MainActivity extends ActionBarActivity implements
 		ActionBar.TabListener {
 
-	final static String version = "2.0";
+	final static String version = "2.1";
 	/**
 	 * The {@link android.support.v4.view.PagerAdapter} that will provide
 	 * fragments for each of the sections. We use a {@link FragmentPagerAdapter}
@@ -344,7 +344,7 @@ public class MainActivity extends ActionBarActivity implements
 			View rootView = inflater.inflate(R.layout.fragment_nic, container, false);
 			
 			mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container);
-			mSwipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright, 
+			mSwipeRefreshLayout.setColorScheme(android.R.color.holo_blue_bright, 
 	                android.R.color.holo_green_light, 
 	                android.R.color.holo_orange_light, 
 	                android.R.color.holo_red_light);
