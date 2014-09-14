@@ -27,6 +27,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -175,7 +176,7 @@ public class MainActivity extends ActionBarActivity implements
 			imm.hideSoftInputFromWindow(
 					this.getCurrentFocus().getWindowToken(), 0);
 		}
-		if (tab.getPosition() == 2) {
+		if (tab.getPosition() == 2 && logFragment != null) {
 			logFragment.refresh();
 		}
 		mViewPager.setCurrentItem(tab.getPosition());
@@ -189,6 +190,9 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public void onTabReselected(ActionBar.Tab tab,
 			FragmentTransaction fragmentTransaction) {
+		if (logFragment != null) {
+			logFragment.refresh();
+		}
 	}
 
 	/**
@@ -1103,7 +1107,10 @@ public class MainActivity extends ActionBarActivity implements
 		}
 
 		public void refresh() {
-			SQLiteHelper db = new SQLiteHelper(getActivity());
+			FragmentActivity activity = getActivity();
+			if (activity == null)
+				return;
+			SQLiteHelper db = new SQLiteHelper(activity);
 			String dateStamp = new SimpleDateFormat("yyyyMMdd",
 					java.util.Locale.getDefault()).format(Calendar
 					.getInstance().getTime());
@@ -1111,8 +1118,11 @@ public class MainActivity extends ActionBarActivity implements
 			String[] logs = dbLogList.toArray(new String[dbLogList.size()]);
 			ListView logList = (ListView) getActivity().findViewById(
 					R.id.logList);
-			logList.setAdapter(new ArrayAdapter<String>(getActivity(),
-					android.R.layout.simple_list_item_1, logs));
+			activity = getActivity();
+			ArrayAdapter<String> adapter = new ArrayAdapter<String>(activity,
+					android.R.layout.simple_list_item_1, logs);
+			if (adapter != null && logList != null)
+				logList.setAdapter(adapter);
 		}
 	}
 
