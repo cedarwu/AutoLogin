@@ -46,7 +46,7 @@ public class WifiListFragment extends DialogFragment {
 		List<ScanResult> wifiList = mainWifi.getScanResults();
    	 	for(int i = 0; i < wifiList.size(); i++) {
    	 		String ssid = wifiList.get(i).SSID;
-   	 		if (!(ssid.equals("")))
+   	 		if (!(ssid.equals("")) && !connections.contains(ssid))
    	 			connections.add(wifiList.get(i).SSID);
         }
 
