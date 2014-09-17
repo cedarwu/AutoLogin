@@ -40,7 +40,17 @@ public class WifiStateReceiver extends BroadcastReceiver {
 				}
 			}
 		} else if (intent.getAction().equals("com.cedar.autologin.unknownhostBroadcast")) {
-			SystemClock.sleep(404);
+			String retrys = intent.getStringExtra("retrys");
+			int r = 0;
+			try {
+				r = Integer.parseInt(retrys);
+			} catch (NumberFormatException e) {
+				Log.d("WifiStateReceiver", "Integer.parseInt error " + e.toString());
+			}
+			if (r < 0 || r > 5)
+				return;
+			SystemClock.sleep(404 * (r+1) * (r+1));
+
 			WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 			String ssid = wifi_service.getConnectionInfo().getSSID();
 			if (ssid.startsWith("\"") && ssid.endsWith("\"")){
@@ -49,7 +59,6 @@ public class WifiStateReceiver extends BroadcastReceiver {
 			SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
 			Set<String> ssidSet = sp.getStringSet("ssid", new HashSet<String>(Arrays.asList("seu-wlan")));
 			if (ssidSet.contains(ssid)) {
-				String retrys = intent.getStringExtra("retrys");
 				BasicNameValuePair retrysInfo = new BasicNameValuePair("retrys", retrys);
 				new LoginTask(context).execute(retrysInfo);
 			}

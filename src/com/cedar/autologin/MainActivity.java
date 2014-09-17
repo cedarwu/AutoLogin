@@ -314,8 +314,9 @@ public class MainActivity extends ActionBarActivity implements
 		TextView remainMoneyText;
 		Button buttonRecharge;
 		//TextView ecardMoneyText;
-		
+
 		AlertDialog.Builder builder;
+		AlertDialog.Builder unlockBuilder;
 		NicFragment nic = this;
 		
 		String kick_ip_address = new String("");
@@ -384,12 +385,25 @@ public class MainActivity extends ActionBarActivity implements
 			onlineTable.setStretchAllColumns(true);
 			
 			builder = new AlertDialog.Builder(getActivity());
+			unlockBuilder = new AlertDialog.Builder(getActivity());
 			new NicTask(getActivity().getApplicationContext(), "initial").execute();
 
 			button_unlock.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
-					Toast.makeText(getActivity().getApplicationContext(),
-							"尚未实现", Toast.LENGTH_LONG).show();
+					unlockBuilder.setTitle("解锁")
+	               	    .setMessage("您确认要解锁web认证服务？")
+	               	    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+	               	        public void onClick(DialogInterface dialog, int which) {
+	               		        new NicTask(getActivity().getApplicationContext(), "unlock").execute();
+	               	        }
+	               	     })
+	               	    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+	               	        public void onClick(DialogInterface dialog, int which) { 
+	               	            // do nothing
+	               	        }
+	               	     })
+	               	    .setIcon(android.R.drawable.ic_dialog_alert)
+	               	    .show();
 				}
 			});
 
@@ -515,12 +529,16 @@ public class MainActivity extends ActionBarActivity implements
 					if (offline())
 						db.addLog("下线 " + kick_ip_address + " 成功");
 				}
-				if (action.equals("payfee")) {
+				else if (action.equals("unlock")) {
+					if (unlock())
+						db.addLog("流量解锁" + " 成功");
+				}
+				else if (action.equals("payfee")) {
 					if (payFee())
 						db.addLog("缴月租费  " + String.valueOf(payFeeMonths) + " 个月 成功");
 					getExpireDate();
 				}
-				if (action.equals("recharge")) {
+				else if (action.equals("recharge")) {
 					if (recharge()) {
 						db.addLog("在线充值  " + rechargeMoney + " 元  成功");
 					}
@@ -534,6 +552,10 @@ public class MainActivity extends ActionBarActivity implements
 				accountCardText.setText(account);
 				if (!stopped) {
 					accountStateText.setText(accountState);
+					if (accountState.equals("超流量锁定"))
+						accountStateText.setTextColor(Color.RED);
+					else
+						accountStateText.setTextColor(Color.BLACK);
 					onlineStateText.setText(onlineState);
 					usageText.setText(usage);
 					expireDateText.setText(expireDate);
@@ -715,7 +737,9 @@ public class MainActivity extends ActionBarActivity implements
 
 					accountState = findInStr(responseStr, 
 							"<strong>账户状态</strong></td>\\s+<td width=\"50%\" align=\"center\" bgcolor=\"#FFFFFF\">(\\S+)</td>");
-
+					if (responseStr.contains("超流量锁定"))
+						accountState = "超流量锁定";
+					
 					onlineState = findInStr(responseStr, 
 							"<strong>在线状态</strong></td>\\s+<td width=\"\\d0%\" align=\"center\" bgcolor=\"#FFFFFF\" colspan=\"3\"><font color=\"#FF0000\">(\\S+)</font></td>");
 					
@@ -938,7 +962,7 @@ public class MainActivity extends ActionBarActivity implements
 				params.setMargins(10, 0, 10, 0);
 				t.setLayoutParams(params);
 			}
-			
+
 			Boolean offline() {
 				Log.d("offline", kick_ip_address);
 				
@@ -971,6 +995,44 @@ public class MainActivity extends ActionBarActivity implements
 
 					if (statusCode != 200) {
 						Log.d("nic", "offline " + kick_ip_address + " failed, statusCode:" + String.valueOf(statusCode));
+						return false;
+					}
+					
+					String responseStr = EntityUtils.toString(
+							response.getEntity(), "gb2312");
+					errorInfo = findInStr(responseStr, "id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
+					if (errorInfo.equals(""))
+						return true;
+				} catch (Exception e) {
+					Log.d("offline", "Error in http connection " + e.toString());
+				}
+				return false;
+			}
+
+			Boolean unlock() {
+				Log.d("unlock", "");
+				try {
+					URI website = new URI(
+							"https://nic.seu.edu.cn/selfservice/service_manage_status_web.php");
+					HttpPost request = new HttpPost(website);
+					setPostHeader(request);
+
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+							2);
+					nameValuePairs.add(new BasicNameValuePair("operation", "unlock"));
+					nameValuePairs.add(new BasicNameValuePair("item", "web"));
+					nameValuePairs
+							.add(new BasicNameValuePair("error_info", ""));
+					nameValuePairs.add(new BasicNameValuePair("kick_ip_address", ""));
+					nameValuePairs.add(new BasicNameValuePair("session_id", ""));
+					nameValuePairs.add(new BasicNameValuePair("nas_ip_address", ""));
+					request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+					HttpResponse response = client.execute(request);
+					int statusCode = response.getStatusLine().getStatusCode();
+
+					if (statusCode != 200) {
+						Log.d("nic", "unlock failed, statusCode:" + String.valueOf(statusCode));
 						return false;
 					}
 					
