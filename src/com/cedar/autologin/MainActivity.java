@@ -531,7 +531,7 @@ public class MainActivity extends ActionBarActivity implements
 				}
 				else if (action.equals("unlock")) {
 					if (unlock())
-						db.addLog("流量解锁" + " 成功");
+						db.addLog("流量解锁 成功");
 				}
 				else if (action.equals("payfee")) {
 					if (payFee())
@@ -1010,7 +1010,6 @@ public class MainActivity extends ActionBarActivity implements
 			}
 
 			Boolean unlock() {
-				Log.d("unlock", "");
 				try {
 					URI website = new URI(
 							"https://nic.seu.edu.cn/selfservice/service_manage_status_web.php");
