@@ -33,6 +33,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	Boolean exceedError = false;
 	Boolean passwdError = false;
 	Boolean alreadyLoggedIn = false;
+	Boolean retry = false;
 	
 	public LoginTask(Context context) {
 
@@ -48,8 +49,11 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 				return false;
 			}
 		}
-		if (checkLogin()) {
-			alreadyLoggedIn = true;
+		if (checkLogin())
+			return false;
+		else if (retry) {
+			retry();
+			return false;
 		}
 		else {
 			SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
@@ -62,15 +66,19 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			if (login()) {
 				Log.d("autologin", "login succeed");
 				return true;
+			} else if (retry) {
+				retry();
+				return false;
 			} else {
 				Log.d("autologin", "login failed");
 				return false;
 			}
 		}
-		return false;
 	}
 
 	protected void onPostExecute(Boolean result) {
+		if (retry)
+			return;
 		SQLiteHelper db = new SQLiteHelper(context);
 		if (result) {
 			db.addLog("登录成功");
@@ -114,6 +122,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			String responseStr = EntityUtils.toString(response.getEntity());
 			//Log.d("autologin", responseStr);
 			if (responseStr.contains("login_username")) {
+				alreadyLoggedIn = true;
 				Log.d("autologin", "already logged in");
 				return true;
 			} else {
@@ -123,7 +132,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 
 		} catch (UnknownHostException e) {
 			Log.d("autologin", "UnknownHostException");
-			retry();
+			retry = true;
 			return false;
 		}  catch (Exception e) {
 			Log.d("autologin", "Error in http connection " + e.toString());
@@ -150,7 +159,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 				String responseStr = EntityUtils.toString(response.getEntity(), "UTF-8");
 				//Log.d("autologin", "认证结果  " + responseStr);
 				if (responseStr.contains("login_username")) {
-					Log.d("autologin", "logged in " + String.valueOf(statusCode));
+					//Log.d("autologin", "logged in " + String.valueOf(statusCode));
 					return true;
 				} else if (responseStr.contains("\\u5e76\\u53d1\\u767b\\u5f55\\u8d85\\u8fc7\\u6700\\u5927\\u9650\\u5236")) {
 					Log.d("autologin", "error: \u5e76\u53d1\u767b\u5f55\u8d85\u8fc7\u6700\u5927\u9650\u5236");
@@ -166,7 +175,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			}
 		} catch (Exception e) {
 			Log.d("autologin", "Error in http connection " + e.toString());
-			retry();
+			retry = true;
 			return false;
 		}
 	}
@@ -178,6 +187,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			Intent intent = new Intent(UNIQUE_STRING);
 			intent.putExtra("retrys", String.valueOf(retrys));
 			context.sendBroadcast(intent);
-		}
+		} else
+			retry = false;
 	}
 }
