@@ -1,7 +1,6 @@
 package com.cedar.autologin;
 
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +79,10 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 		if (retry)
 			return;
 		SQLiteHelper db = new SQLiteHelper(context);
+		
+		//WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+		//db.addLog("BSSID:" + wifi_service.getConnectionInfo().getBSSID());
+		
 		if (result) {
 			db.addLog("µÇÂ¼³É¹¦");
 			Toast.makeText(context.getApplicationContext(),
@@ -130,12 +133,9 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 				return false;
 			}
 
-		} catch (UnknownHostException e) {
-			Log.d("autologin", "UnknownHostException");
+		} catch (Exception e) {
+			Log.d("checkLogin", "Error in http connection " + e.toString());
 			retry = true;
-			return false;
-		}  catch (Exception e) {
-			Log.d("autologin", "Error in http connection " + e.toString());
 			return false;
 		}
 	}
@@ -174,7 +174,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 				return false;
 			}
 		} catch (Exception e) {
-			Log.d("autologin", "Error in http connection " + e.toString());
+			Log.d("login", "Error in http connection " + e.toString());
 			retry = true;
 			return false;
 		}
