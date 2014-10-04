@@ -68,6 +68,9 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			} else if (retry) {
 				retry();
 				return false;
+			} else if (exceedError) {
+				MainActivity.NicFragment.newInstance(0).new NicTask(context, "offlineCurrentAndLogin").execute();
+				return false;
 			} else {
 				Log.d("autologin", "login failed");
 				return false;

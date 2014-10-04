@@ -529,6 +529,14 @@ public class MainActivity extends ActionBarActivity implements
 					if (offline())
 						db.addLog("下线 " + kick_ip_address + " 成功");
 				}
+				else if (action.equals("offlineCurrentAndLogin")) {
+					if (offlineCurrentAndLogin()) {
+						db.addLog("下线当前设备 成功");
+						return true;
+					}
+					else
+						return false;
+				}
 				else if (action.equals("unlock")) {
 					if (unlock())
 						db.addLog("流量解锁 成功");
@@ -549,6 +557,10 @@ public class MainActivity extends ActionBarActivity implements
 			}
 
 			protected void onPostExecute(Boolean result) {
+				if (action.equals("offlineCurrentAndLogin"))
+					return;
+				if (accountCardText == null)
+					return;
 				accountCardText.setText(account);
 				if (!stopped) {
 					accountStateText.setText(accountState);
@@ -582,6 +594,11 @@ public class MainActivity extends ActionBarActivity implements
 						
 						onlineTable.addView(row,new TableLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)); 
 					}
+					
+					WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+					String macAddr = wifi_service.getConnectionInfo().getMacAddress();
+					macAddr = macAddr.replaceAll(":", "");
+					
 					for (OnlineDevice device : onlineDevices) {
 						TableRow row = new TableRow(context);
 
@@ -596,6 +613,12 @@ public class MainActivity extends ActionBarActivity implements
 						TextView t3 = new TextView(context);
 						setTextView(t3, device.mac);
 						row.addView(t3);
+						
+						if (device.mac.replaceAll("\\.", "").equals(macAddr)) {
+							t1.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
+							t2.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
+							t3.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
+						}
 						
 						Button b = new Button(context);
 						b.setText("下线");
@@ -1005,6 +1028,32 @@ public class MainActivity extends ActionBarActivity implements
 						return true;
 				} catch (Exception e) {
 					Log.d("offline", "Error in http connection " + e.toString());
+				}
+				return false;
+			}
+			
+			Boolean offlineCurrentAndLogin() {
+				WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+				String macAddr = wifi_service.getConnectionInfo().getMacAddress();
+				Log.d("macAddr:", macAddr);
+				macAddr = macAddr.replaceAll(":", "");
+				
+				if (macAddr.equals("")) {
+					Log.d("offlineCurrentAndLogin", "getMacAddress is empty");
+					return false;
+				}
+				
+				for (OnlineDevice device : onlineDevices) {
+					if (device.mac.replaceAll("\\.", "").equals(macAddr)) {
+						kick_ip_address = device.ip;
+           	        	session_id = device.session_id;
+           	        	nas_ip_address = device.nas_ip;
+           	        	if (offline()) {
+           	        		Log.d("offlineCurrent", "succeed");
+               	        	new LoginTask(context).execute();
+               	        	return true;
+           	        	}
+					}
 				}
 				return false;
 			}
