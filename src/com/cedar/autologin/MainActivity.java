@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -429,8 +430,10 @@ public class MainActivity extends ActionBarActivity implements
 		}
 		
 		private void refresh() {
-	        clearInfo();
-	        new NicTask(getActivity().getApplicationContext(), "initial").execute();
+	        if (getActivity() != null) {
+		        clearInfo();
+		        new NicTask(getActivity().getApplicationContext(), "initial").execute();
+	        }
 	    }
 		
 	    private void onRefreshComplete() {
@@ -607,7 +610,7 @@ public class MainActivity extends ActionBarActivity implements
 					
 					WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 					WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-					String macAddr = wifiInfo.getMacAddress().replaceAll(":", "");
+					String macAddr = wifiInfo.getMacAddress().replaceAll(":", "").toLowerCase(Locale.getDefault());
 					
 					@SuppressWarnings("deprecation")
 					String ipAddr = Formatter.formatIpAddress(wifiInfo.getIpAddress());
@@ -1232,6 +1235,12 @@ public class MainActivity extends ActionBarActivity implements
 			button.setText(dateStamp);
 			return rootView;
 		}
+		
+		@Override
+		public void onStart() {
+			super.onStart();
+			refresh();
+		}
 
 		public void refresh() {
 			FragmentActivity activity = getActivity();
@@ -1503,7 +1512,11 @@ public class MainActivity extends ActionBarActivity implements
 			Toast.makeText(getApplicationContext(), "Account and password can not be empty !",
 					Toast.LENGTH_LONG).show();
 			return;
-		} else {
+		} else if (accountText == null || passwdText == null) {
+			Log.d("autologin", "text is null");
+			return;
+		}
+		else {
 			InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 			if( view.getWindowToken() != null) {
 				imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
@@ -1513,7 +1526,8 @@ public class MainActivity extends ActionBarActivity implements
             editor.putString("account", account);  
             editor.putString("passwd",passwd);  
             editor.commit();
-            nicFragment.refresh();
+            if (nicFragment != null)
+            	nicFragment.refresh();
             WifiManager wifi_service = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 			String ssid = wifi_service.getConnectionInfo().getSSID();
 			if (ssid.startsWith("\"") && ssid.endsWith("\"")){
