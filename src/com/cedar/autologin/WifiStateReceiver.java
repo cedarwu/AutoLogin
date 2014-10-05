@@ -10,7 +10,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.net.NetworkInfo;
+import android.net.NetworkInfo.DetailedState;
 import android.net.wifi.WifiManager;
 import android.os.SystemClock;
 import android.util.Log;
@@ -27,6 +29,7 @@ public class WifiStateReceiver extends BroadcastReceiver {
 				Log.d("autologin", "NetworkInfo is null");
 			}
 			else if (info.isConnected()) {
+				Log.d("info", info.getDetailedState().toString());
 				WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 				String ssid = wifi_service.getConnectionInfo().getSSID();
 				if (ssid.startsWith("\"") && ssid.endsWith("\"")){
@@ -38,6 +41,11 @@ public class WifiStateReceiver extends BroadcastReceiver {
 					Log.d("autologin", "wifi connected to " + ssid);
 					new LoginTask(context).execute();
 				}
+			}
+			else if (info.getDetailedState() == DetailedState.DISCONNECTED) {
+				Editor editor = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE).edit();  
+	            editor.putString("lastssid", "").apply();
+				Log.d("info2", info.getDetailedState().toString());
 			}
 		} else if (intent.getAction().equals("com.cedar.autologin.unknownhostBroadcast")) {
 			String retrys = intent.getStringExtra("retrys");

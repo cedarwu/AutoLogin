@@ -17,6 +17,7 @@ import org.apache.http.util.EntityUtils;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
@@ -111,9 +112,19 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 					.show();
 		} else if (alreadyLoggedIn) {
 			db.addLog("ÒÑµÇÂ¼ ");
-			Toast.makeText(context.getApplicationContext(),
-					"AutoLogin: ÒÑµÇÂ¼~", Toast.LENGTH_LONG)
-					.show();
+			
+			SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+			String lastssid = sp.getString("lastssid", "");
+
+			WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+			String currentssid = wifi_service.getConnectionInfo().getSSID();
+			
+			if (!currentssid.equals(lastssid)) {
+				Toast.makeText(context.getApplicationContext(),
+						"AutoLogin: ÒÑµÇÂ¼~", Toast.LENGTH_LONG)
+						.show();
+				sp.edit().putString("lastssid", currentssid).apply();
+			}
 		}
 	}
 
