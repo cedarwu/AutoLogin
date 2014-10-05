@@ -46,11 +46,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -595,9 +597,12 @@ public class MainActivity extends ActionBarActivity implements
 						onlineTable.addView(row,new TableLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)); 
 					}
 					
-					WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-					String macAddr = wifi_service.getConnectionInfo().getMacAddress();
-					macAddr = macAddr.replaceAll(":", "");
+					WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+					WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+					String macAddr = wifiInfo.getMacAddress().replaceAll(":", "");
+					
+					@SuppressWarnings("deprecation")
+					String ipAddr = Formatter.formatIpAddress(wifiInfo.getIpAddress());
 					
 					for (OnlineDevice device : onlineDevices) {
 						TableRow row = new TableRow(context);
@@ -615,9 +620,14 @@ public class MainActivity extends ActionBarActivity implements
 						row.addView(t3);
 						
 						if (device.mac.replaceAll("\\.", "").equals(macAddr)) {
-							t1.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
-							t2.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
-							t3.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
+							int color;
+							if (device.ip.equals(ipAddr))
+								color = android.R.color.holo_blue_dark;
+							else
+								color = android.R.color.holo_red_dark;
+							t1.setTextColor(getResources().getColor(color));
+							t2.setTextColor(getResources().getColor(color));
+							t3.setTextColor(getResources().getColor(color));
 						}
 						
 						Button b = new Button(context);
@@ -1043,6 +1053,7 @@ public class MainActivity extends ActionBarActivity implements
 					return false;
 				}
 				
+				getStates();
 				for (OnlineDevice device : onlineDevices) {
 					if (device.mac.replaceAll("\\.", "").equals(macAddr)) {
 						kick_ip_address = device.ip;
