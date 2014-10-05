@@ -501,6 +501,7 @@ public class MainActivity extends ActionBarActivity implements
 
 			Boolean networkError = false;
 			String errorInfo = new String("");
+			Boolean exceedError = false;
 
 			public NicTask(Context context, String action) {
 				this.context = context;
@@ -536,8 +537,11 @@ public class MainActivity extends ActionBarActivity implements
 						db.addLog("下线当前设备 成功");
 						return true;
 					}
-					else
+					else {
+						exceedError = true;
+						db.addLog("并发登录超过最大限制 ");
 						return false;
+					}
 				}
 				else if (action.equals("unlock")) {
 					if (unlock())
@@ -559,8 +563,12 @@ public class MainActivity extends ActionBarActivity implements
 			}
 
 			protected void onPostExecute(Boolean result) {
-				if (action.equals("offlineCurrentAndLogin"))
+				if (action.equals("offlineCurrentAndLogin") && exceedError) {
+					Toast.makeText(context.getApplicationContext(),
+							"AutoLogin: 并发登录超过最大限制 !", Toast.LENGTH_LONG)
+							.show();
 					return;
+				}
 				if (accountCardText == null)
 					return;
 				accountCardText.setText(account);

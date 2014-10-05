@@ -98,10 +98,12 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 					"AutoLogin: 登录失败!", Toast.LENGTH_LONG)
 					.show();
 		} else if (exceedError) {
+			/* -> moved to MainActivity.NicFragment.NicTask offlineCurrentAndLogin
 			db.addLog("并发登录超过最大限制 ");
 			Toast.makeText(context.getApplicationContext(),
 					"AutoLogin: 并发登录超过最大限制 !", Toast.LENGTH_LONG)
 					.show();
+					*/
 		} else if (passwdError) {
 			db.addLog("用户名密码错误 ");
 			Toast.makeText(context.getApplicationContext(),
