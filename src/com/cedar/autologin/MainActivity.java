@@ -46,7 +46,6 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -160,8 +159,7 @@ public class MainActivity extends ActionBarActivity implements
 			return true;
 		}
 		else if (id == R.id.action_about) {
-			Uri uri = Uri.parse("http://autologin.cedar.tk");  
-		    startActivity(new Intent(Intent.ACTION_VIEW, uri));  
+			showAbout();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -568,6 +566,9 @@ public class MainActivity extends ActionBarActivity implements
 			}
 
 			protected void onPostExecute(Boolean result) {
+				if(!isAdded()) {
+				    return;
+				}
 				if (action.equals("offlineCurrentAndLogin") && exceedError) {
 					Toast.makeText(context.getApplicationContext(),
 							"AutoLogin: 并发登录超过最大限制 !", Toast.LENGTH_LONG)
@@ -632,7 +633,7 @@ public class MainActivity extends ActionBarActivity implements
 						setTextView(t3, device.mac);
 						row.addView(t3);
 						
-						if (device.mac.replaceAll("\\.", "").equals(macAddr)) {
+						if (device.mac.replaceAll("\\.", "").equals(macAddr) && getResources() != null) {
 							int color;
 							if (device.ip.equals(ipAddr))
 								color = android.R.color.holo_blue_dark;
@@ -1547,6 +1548,22 @@ public class MainActivity extends ActionBarActivity implements
 		DialogFragment newFragment = new DatePickerFragment();
 	    newFragment.show(getSupportFragmentManager(), "datePicker");
 	}
+	
+	protected void showAbout() {
+        View messageView = getLayoutInflater().inflate(R.layout.about, null, false);
+ 
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(R.drawable.ic_launcher);
+        builder.setTitle(R.string.app_name);
+        builder.setView(messageView);
+        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+   	        public void onClick(DialogInterface dialog, int which) { 
+   	            // do nothing
+   	        }
+   	     });
+        builder.create();
+        builder.show();
+    }
 	
 	public boolean checkSsid(String ssid) {
 		SharedPreferences sp = getSharedPreferences("userInfo", Context.MODE_PRIVATE);
