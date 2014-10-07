@@ -9,7 +9,7 @@
     <string name="action_about">关于</string>
     <string name="account_message">用户名</string>
     <string name="passwd_message">密码</string>
-    <string name="button_ok">保存</string>
+    <string name="button_ok">保存并登陆</string>
     <string name="account_card">一卡通号：</string>
     <string name="account_state">账户状态：</string>
     <string name="online_state">在线状态：</string>

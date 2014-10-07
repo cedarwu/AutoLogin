@@ -373,6 +373,8 @@ public class MainActivity extends ActionBarActivity implements
 		public void onStart() {
 			super.onStart();
 			
+			if (mSwipeRefreshLayout != null && !mSwipeRefreshLayout.isRefreshing())
+				mSwipeRefreshLayout.setRefreshing(true);
 			accountCardText = (TextView) getActivity().findViewById(R.id.accountCard);
 			accountStateText = (TextView) getActivity().findViewById(R.id.accountState);
 			onlineStateText = (TextView) getActivity().findViewById(R.id.onlineState);

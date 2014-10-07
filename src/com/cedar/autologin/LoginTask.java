@@ -92,6 +92,9 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			Toast.makeText(context.getApplicationContext(),
 					"AutoLogin: µÇÂ¼³É¹¦~", Toast.LENGTH_LONG)
 					.show();
+			WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+			SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
+			sp.edit().putString("lastssid", wifi_service.getConnectionInfo().getSSID()).apply();
 		} else if (retrys >= 3){
 			Log.d("autologin", "retrys too many times");
 			db.addLog("µÇÂ¼Ê§°Ü");
