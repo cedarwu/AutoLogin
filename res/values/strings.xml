@@ -30,8 +30,8 @@
     <string name="input_ssid">手动输入SSID</string>
     <string name="select_from_list">从WiFi列表选择</string>
     <string name="or">或</string>
-    <string name="about_author">\t\t\tAuthor:\t\t cedar</string>
-    <string name="about_contact">\t\tContact:\t\t cedarty@gmail.com</string>
-    <string name="about_autologin">AutoLogin:\t\t http://autologin.cedar.tk</string>
+    <string name="about_author">Author\t\t\t\t:\t cedar</string>
+    <string name="about_contact">Contact\t\t\t:\t cedarty@gmail.com</string>
+    <string name="about_autologin">AutoLogin\t:\t http://autologin.cedar.tk</string>
 
 </resources>
