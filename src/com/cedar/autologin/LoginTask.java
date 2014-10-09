@@ -27,7 +27,7 @@ import android.widget.Toast;
 
 public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 
-	final static String version = "2.1";
+	final static String version = "2.2";
 	
 	Context context;
 	String account;
