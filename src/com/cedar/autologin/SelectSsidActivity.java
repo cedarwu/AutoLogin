@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,12 +66,12 @@ public class SelectSsidActivity extends ActionBarActivity implements WifiListFra
 	    editor.putStringSet("ssid", ssidSet);
 
 	    editor.commit();
-	    Log.d("ssidSet", ssidSet.toString());
+	    //Log.d("ssidSet", ssidSet.toString());
 	}
 
 	@Override
 	public void addSsid(String ssid) {
-		Log.d("addSsid", ssid);
+		//Log.d("addSsid", ssid);
 		if (ssid.equals("") || ssidArray.contains(ssid))
 			return;
 		ssidArray.add(ssid);
@@ -127,10 +126,7 @@ public class SelectSsidActivity extends ActionBarActivity implements WifiListFra
 		}
 
 		private void rmSsid(int clickID) {
-			Log.d("listItems", listItems.toString());
-			Log.d(String.valueOf(clickID), listItems.get(clickID));
 			listItems.remove(clickID);
-			Log.d("listItems", listItems.toString());
 			this.notifyDataSetChanged();
 		}
 	}

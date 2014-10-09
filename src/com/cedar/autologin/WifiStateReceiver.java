@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.apache.http.message.BasicNameValuePair;
 
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +30,6 @@ public class WifiStateReceiver extends BroadcastReceiver {
 				Log.d("autologin", "NetworkInfo is null");
 			}
 			else if (info.isConnected()) {
-				Log.d("info", info.getDetailedState().toString());
 				WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 				String ssid = wifi_service.getConnectionInfo().getSSID();
 				if (ssid.startsWith("\"") && ssid.endsWith("\"")){
@@ -38,14 +38,16 @@ public class WifiStateReceiver extends BroadcastReceiver {
 				SharedPreferences sp = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE);
 				Set<String> ssidSet = sp.getStringSet("ssid", new HashSet<String>(Arrays.asList("seu-wlan")));
 				if (ssidSet.contains(ssid)) {
-					Log.d("autologin", "wifi connected to " + ssid);
+					//Log.d("autologin", "wifi connected to " + ssid);
 					new LoginTask(context).execute();
 				}
 			}
 			else if (info.getDetailedState() == DetailedState.DISCONNECTED) {
+				NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+				if (mNotificationManager != null)
+					mNotificationManager.cancelAll();
 				Editor editor = context.getSharedPreferences("userInfo", Context.MODE_PRIVATE).edit();  
 	            editor.putString("lastssid", "").apply();
-				Log.d("info2", info.getDetailedState().toString());
 			}
 		} else if (intent.getAction().equals("com.cedar.autologin.unknownhostBroadcast")) {
 			String retrys = intent.getStringExtra("retrys");
@@ -68,7 +70,13 @@ public class WifiStateReceiver extends BroadcastReceiver {
 			Set<String> ssidSet = sp.getStringSet("ssid", new HashSet<String>(Arrays.asList("seu-wlan")));
 			if (ssidSet.contains(ssid)) {
 				BasicNameValuePair retrysInfo = new BasicNameValuePair("retrys", retrys);
-				new LoginTask(context).execute(retrysInfo);
+				if (intent.getStringExtra("foreground") != "true") {
+					new LoginTask(context).execute(retrysInfo);
+				}
+				else {
+					BasicNameValuePair foregroundInfo = new BasicNameValuePair("foreground", "true");
+					new LoginTask(context).execute(retrysInfo, foregroundInfo);
+				}
 			}
 		}
 

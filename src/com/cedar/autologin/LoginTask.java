@@ -14,11 +14,14 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -35,18 +38,25 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	Boolean alreadyLoggedIn = false;
 	Boolean retry = false;
 	
+	Boolean foreground = false;
+	
 	public LoginTask(Context context) {
 
 	    this.context = context;
 	}
 	
 	protected Boolean doInBackground(BasicNameValuePair... params) {
-		if (params.length > 0 && params[0].getName().equals("retrys")) {
-			try {
-				retrys = Integer.parseInt(params[0].getValue()) + 1;
-			} catch (NumberFormatException e) {
-				Log.d("autologin", "Integer.parseInt error " + e.toString());
-				return false;
+		for (BasicNameValuePair param : params) {
+			if (param.getName().equals("retrys")) {
+				try {
+					retrys = Integer.parseInt(param.getValue()) + 1;
+				} catch (NumberFormatException e) {
+					Log.d("autologin", "Integer.parseInt error " + e.toString());
+					return false;
+				}
+			}
+			else if (param.getName().equals("foreground")) {
+				foreground = true;
 			}
 		}
 		if (checkLogin())
@@ -70,7 +80,9 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 				retry();
 				return false;
 			} else if (exceedError) {
-				MainActivity.NicFragment.newInstance(0).new NicTask(context, "offlineCurrentAndLogin").execute();
+				MainActivity.NicFragment.NicTask nicTask = MainActivity.NicFragment.newInstance(0).new NicTask(context, "offlineCurrentAndLogin");
+				nicTask.foreground = foreground;
+				nicTask.execute();
 				return false;
 			} else {
 				Log.d("autologin", "login failed");
@@ -84,9 +96,6 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			return;
 		SQLiteHelper db = new SQLiteHelper(context);
 		
-		//WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-		//db.addLog("BSSID:" + wifi_service.getConnectionInfo().getBSSID());
-		
 		if (result) {
 			db.addLog("登录成功");
 			Toast.makeText(context.getApplicationContext(),
@@ -98,9 +107,11 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 		} else if (retrys >= 3){
 			Log.d("autologin", "retrys too many times");
 			db.addLog("登录失败");
-			Toast.makeText(context.getApplicationContext(),
-					"AutoLogin: 登录失败!", Toast.LENGTH_LONG)
-					.show();
+			if (foreground)
+				Toast.makeText(context.getApplicationContext(),
+						"AutoLogin: 登录失败!", Toast.LENGTH_LONG).show();
+			else
+				showNotification("AutoLogin: 登录失败");
 		} else if (exceedError) {
 			/* -> moved to MainActivity.NicFragment.NicTask offlineCurrentAndLogin
 			db.addLog("并发登录超过最大限制 ");
@@ -110,9 +121,11 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 					*/
 		} else if (passwdError) {
 			db.addLog("用户名密码错误 ");
-			Toast.makeText(context.getApplicationContext(),
-					"AutoLogin: 用户名密码错误 !", Toast.LENGTH_LONG)
-					.show();
+			if (foreground)
+				Toast.makeText(context.getApplicationContext(),
+						"AutoLogin: 用户名密码错误 !", Toast.LENGTH_LONG).show();
+			else
+				showNotification("AutoLogin: 用户名密码错误 ");
 		} else if (alreadyLoggedIn) {
 			db.addLog("已登录 ");
 			
@@ -205,8 +218,31 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			String UNIQUE_STRING = "com.cedar.autologin.unknownhostBroadcast";
 			Intent intent = new Intent(UNIQUE_STRING);
 			intent.putExtra("retrys", String.valueOf(retrys));
+			if (foreground)
+				intent.putExtra("foreground", "true");
 			context.sendBroadcast(intent);
 		} else
 			retry = false;
+	}
+	
+	public void showNotification(String content) {
+
+		int notifyId = 1;
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
+		
+		if (mNotificationManager == null || mBuilder == null)
+			return;
+		
+		mBuilder.setContentTitle(content)
+		.setTicker(content)
+		.setAutoCancel(true)
+		.setSmallIcon(R.drawable.ic_launcher);;
+		
+		Intent resultIntent = new Intent(context, MainActivity.class);
+		resultIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		mBuilder.setContentIntent(pendingIntent);
+		mNotificationManager.notify(notifyId, mBuilder.build());
 	}
 }

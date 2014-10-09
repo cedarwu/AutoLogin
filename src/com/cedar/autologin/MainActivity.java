@@ -35,9 +35,12 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.NotificationCompat;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -95,6 +98,8 @@ public class MainActivity extends ActionBarActivity implements
 	static AccountFragment accountFragment = null;
 	static NicFragment nicFragment = null;
 	static LogFragment logFragment = null;
+	
+	static Boolean fromExceedNotification = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -134,6 +139,11 @@ public class MainActivity extends ActionBarActivity implements
 			actionBar.addTab(actionBar.newTab()
 					.setText(mSectionsPagerAdapter.getPageTitle(i))
 					.setTabListener(this));
+		}
+		int initialTab = getIntent().getIntExtra("fragment", 0);
+		if (initialTab == 1) {
+			fromExceedNotification = true;
+			actionBar.setSelectedNavigationItem(1);
 		}
 		setTitle(getString(R.string.app_name) + "  v" + version);
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
@@ -505,6 +515,8 @@ public class MainActivity extends ActionBarActivity implements
 			Boolean networkError = false;
 			String errorInfo = new String("");
 			Boolean exceedError = false;
+			
+			Boolean foreground = false;
 
 			public NicTask(Context context, String action) {
 				this.context = context;
@@ -524,7 +536,7 @@ public class MainActivity extends ActionBarActivity implements
 				}
 				if (!checkCookie(client)) {
 					if (login()) {
-						Log.d("nic", "login succeed");
+						//Log.d("nic", "login succeed");
 					} else {
 						Log.d("nic", "login failed");
 						return false;
@@ -532,8 +544,14 @@ public class MainActivity extends ActionBarActivity implements
 				}
 				SQLiteHelper db = new SQLiteHelper(context);
 				if (action.equals("offline")) {
-					if (offline())
+					if (offline()) {
 						db.addLog("下线 " + kick_ip_address + " 成功");
+						if (fromExceedNotification) {
+							fromExceedNotification = false;
+           	        		BasicNameValuePair foregroundInfo = new BasicNameValuePair("foreground", "true");
+           	        		new LoginTask(context).execute(foregroundInfo);
+						}
+					}
 				}
 				else if (action.equals("offlineCurrentAndLogin")) {
 					if (offlineCurrentAndLogin()) {
@@ -566,15 +584,40 @@ public class MainActivity extends ActionBarActivity implements
 			}
 
 			protected void onPostExecute(Boolean result) {
+				if (action.equals("offlineCurrentAndLogin") && exceedError) {
+					if(foreground) {
+						Toast.makeText(context.getApplicationContext(),
+								"AutoLogin: 并发登录超过最大限制 !", Toast.LENGTH_LONG)
+								.show();
+					}
+					else {
+						int notifyId = 1;
+						NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+						NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
+					
+						if (mNotificationManager == null || mBuilder == null)
+							return;
+					
+						mBuilder.setContentTitle("AutoLogin: 并发登录超过最大限制")
+						.setTicker("AutoLogin: 并发登录超过最大限制")
+						.setAutoCancel(true)
+						.setSmallIcon(R.drawable.ic_launcher);;
+					
+						Intent resultIntent = new Intent(context, MainActivity.class);
+						resultIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+						resultIntent.putExtra("fragment", 1);
+						PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+						mBuilder.setContentIntent(pendingIntent);
+						mNotificationManager.notify(notifyId, mBuilder.build());
+					}
+					
+					return;
+				}
+				
 				if(!isAdded()) {
 				    return;
 				}
-				if (action.equals("offlineCurrentAndLogin") && exceedError) {
-					Toast.makeText(context.getApplicationContext(),
-							"AutoLogin: 并发登录超过最大限制 !", Toast.LENGTH_LONG)
-							.show();
-					return;
-				}
+				
 				if (accountCardText == null)
 					return;
 				accountCardText.setText(account);
@@ -754,8 +797,7 @@ public class MainActivity extends ActionBarActivity implements
 						return false;
 					}
 				} catch (Exception e) {
-					Log.d("autologin",
-							"Error in http connection " + e.toString());
+					Log.d("autologin", "Error in http connection " + e.toString());
 					networkError = true;
 					return false;
 				}
@@ -824,8 +866,7 @@ public class MainActivity extends ActionBarActivity implements
 					
 					return true;
 				} catch (Exception e) {
-					Log.d("autologin",
-							"Error in http connection " + e.toString());
+					Log.d("autologin", "Error in http connection " + e.toString());
 					networkError = true;
 					return false;
 				}
@@ -843,8 +884,7 @@ public class MainActivity extends ActionBarActivity implements
 					int statusCode = response.getStatusLine().getStatusCode();
 					
 					if (statusCode != 200) {
-						Log.d("nic", "getExpireDate failed, statusCode:"
-								+ String.valueOf(statusCode));
+						Log.d("nic", "getExpireDate failed, statusCode:" + String.valueOf(statusCode));
 						return false;
 					}
 
@@ -856,8 +896,7 @@ public class MainActivity extends ActionBarActivity implements
 					
 					return true;
 				} catch (Exception e) {
-					Log.d("getExpireDate",
-							"Error in http connection " + e.toString());
+					Log.d("getExpireDate", "Error in http connection " + e.toString());
 					networkError = true;
 					return false;
 				}
@@ -886,8 +925,7 @@ public class MainActivity extends ActionBarActivity implements
 					int statusCode = response.getStatusLine().getStatusCode();
 					
 					if (statusCode != 200) {
-						Log.d("myseu", "logged2 failed, statusCode:"
-								+ String.valueOf(statusCode));
+						Log.d("myseu", "logged2 failed, statusCode:" + String.valueOf(statusCode));
 						return false;
 					}
 
@@ -911,8 +949,7 @@ public class MainActivity extends ActionBarActivity implements
 					statusCode = response.getStatusLine().getStatusCode();
 					
 					if (statusCode != 200) {
-						Log.d("myseu", "logged failed, statusCode:"
-								+ String.valueOf(statusCode));
+						Log.d("myseu", "logged failed, statusCode:" + String.valueOf(statusCode));
 						return false;
 					}
 					
@@ -934,8 +971,7 @@ public class MainActivity extends ActionBarActivity implements
 					statusCode = response.getStatusLine().getStatusCode();
 					
 					if (statusCode != 200) {
-						Log.d("myseu", "getEMoney failed, statusCode:"
-								+ String.valueOf(statusCode));
+						Log.d("myseu", "getEMoney failed, statusCode:" + String.valueOf(statusCode));
 						return false;
 					}
 
@@ -948,8 +984,7 @@ public class MainActivity extends ActionBarActivity implements
 					return true;
 
 				} catch (Exception e) {
-					Log.d("getCardMoney",
-							"Error in http connection " + e.toString());
+					Log.d("getCardMoney", "Error in http connection " + e.toString());
 					networkError = true;
 					return false;
 				}
@@ -1011,7 +1046,7 @@ public class MainActivity extends ActionBarActivity implements
 			}
 
 			Boolean offline() {
-				Log.d("offline", kick_ip_address);
+				//Log.d("offline", kick_ip_address);
 				
 				if (kick_ip_address.equals("") || session_id.equals("") || nas_ip_address.equals(""))
 					return false;
@@ -1059,7 +1094,7 @@ public class MainActivity extends ActionBarActivity implements
 			Boolean offlineCurrentAndLogin() {
 				WifiManager wifi_service = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 				String macAddr = wifi_service.getConnectionInfo().getMacAddress();
-				Log.d("macAddr:", macAddr);
+				//Log.d("macAddr:", macAddr);
 				macAddr = macAddr.replaceAll(":", "");
 				
 				if (macAddr.equals("")) {
@@ -1074,8 +1109,13 @@ public class MainActivity extends ActionBarActivity implements
            	        	session_id = device.session_id;
            	        	nas_ip_address = device.nas_ip;
            	        	if (offline()) {
-           	        		Log.d("offlineCurrent", "succeed");
-               	        	new LoginTask(context).execute();
+           	        		//Log.d("offlineCurrent", "succeed");
+           	        		if (!foreground)
+           	        			new LoginTask(context).execute();
+           	        		else {
+           	        			BasicNameValuePair foregroundInfo = new BasicNameValuePair("foreground", "true");
+           	        			new LoginTask(context).execute(foregroundInfo);
+           	        		}
                	        	return true;
            	        	}
 					}
@@ -1511,6 +1551,11 @@ public class MainActivity extends ActionBarActivity implements
 		String account = accountText.getText().toString();
 		String passwd = passwdText.getText().toString();
 		//Log.d("autologin", ssid);
+		
+		NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		if (mNotificationManager != null)
+			mNotificationManager.cancelAll();
+		
 		if (account.isEmpty() || passwd.isEmpty()) {
 			Toast.makeText(getApplicationContext(), "Account and password can not be empty !",
 					Toast.LENGTH_LONG).show();
@@ -1537,8 +1582,9 @@ public class MainActivity extends ActionBarActivity implements
 				ssid = ssid.substring(1, ssid.length()-1);
 			}
 			if (checkSsid(ssid)) {
-				Log.d("autologin", "wifi connected to " + ssid);
-				new LoginTask(getApplicationContext()).execute();
+				//Log.d("autologin", "wifi connected to " + ssid);
+				BasicNameValuePair foregroundInfo = new BasicNameValuePair("foreground", "true");
+				new LoginTask(getApplicationContext()).execute(foregroundInfo);
 			}
 			Toast.makeText(getApplicationContext(), "保存成功,程序将自动完成Web认证 ~", Toast.LENGTH_LONG).show();
 		}
