@@ -37,6 +37,7 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 	Boolean passwdError = false;
 	Boolean alreadyLoggedIn = false;
 	Boolean retry = false;
+	Boolean forbidden = false;
 	
 	Boolean foreground = false;
 	
@@ -141,6 +142,11 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 						.show();
 				sp.edit().putString("lastssid", currentssid).apply();
 			}
+		} else if (forbidden) {
+			db.addLog("没有访问权限");
+			Toast.makeText(context.getApplicationContext(),
+					"AutoLogin: 亲~您还没有访问该页面的权限哦！\n休息~休息一下！", Toast.LENGTH_LONG)
+					.show();
 		}
 	}
 
@@ -159,6 +165,10 @@ public class LoginTask extends AsyncTask<BasicNameValuePair, Integer, Boolean> {
 			if (responseStr.contains("login_username")) {
 				alreadyLoggedIn = true;
 				Log.d("autologin", "already logged in");
+				return true;
+			} else if (response.getStatusLine().getStatusCode() == 403) {
+				forbidden = true;
+				Log.d("autologin", "403 forbidden");
 				return true;
 			} else {
 				// Log.d("autologin", "have not login");
