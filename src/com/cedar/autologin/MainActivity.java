@@ -307,6 +307,7 @@ public class MainActivity extends ActionBarActivity implements
 		String expireDate = new String("");
 		String remainMoney = new String("");
 		String ecardMoney = new String("");
+		Boolean notOpened = false;
 		
 		ArrayList<OnlineDevice> onlineDevices = new ArrayList<OnlineDevice>();
 
@@ -477,6 +478,8 @@ public class MainActivity extends ActionBarActivity implements
 			queryPasswd = new String("");
 	   	 	rechargeMoney = new String("");
 	   	 	verifyCode = new String("");
+	   	 	
+	   	 	notOpened = false;
 			
 			client = getHttpClient();
 	    }
@@ -629,7 +632,16 @@ public class MainActivity extends ActionBarActivity implements
 						accountStateText.setTextColor(Color.BLACK);
 					onlineStateText.setText(onlineState);
 					usageText.setText(usage);
-					expireDateText.setText(expireDate);
+					if (notOpened) {
+						accountState = "未开通";
+						accountStateText.setText("未开通");
+						expireDateText.setText("未开通");
+						button_payfee.setText("开通");
+					}
+					else {
+						expireDateText.setText(expireDate);
+						button_payfee.setText("缴月租费");
+					}
 					remainMoneyText.setText(remainMoney);
 					//ecardMoneyText.setText(ecardMoney);
 					
@@ -787,6 +799,10 @@ public class MainActivity extends ActionBarActivity implements
 					} else if (responseStr.contains("欠费停用")) {
 						stopped = true;
 						//Log.d("nic", "logged in");
+						return true;
+					} else if (Pattern.compile("解锁费用：<br>5元/<font color=\"#FF0000\">10G</font></td>\\s+<td class=\"font_text\">未开通</td>").matcher(responseStr).find()) {
+						notOpened = true;
+						//Log.d("nic", "not opened");
 						return true;
 					} else {
 						Pattern p = Pattern.compile("id=\"error_info\" name=\"error_info\" value=\"(\\S+)\">");
@@ -1175,7 +1191,10 @@ public class MainActivity extends ActionBarActivity implements
 
 					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
 							2);
-					nameValuePairs.add(new BasicNameValuePair("operation", "web_delay"));
+					if (notOpened)
+						nameValuePairs.add(new BasicNameValuePair("operation", "web_subscribe"));
+					else
+						nameValuePairs.add(new BasicNameValuePair("operation", "web_delay"));
 					nameValuePairs.add(new BasicNameValuePair("item", "web"));
 					nameValuePairs.add(new BasicNameValuePair("error_info", ""));
 					nameValuePairs.add(new BasicNameValuePair("web_sel", months));
@@ -1392,6 +1411,8 @@ public class MainActivity extends ActionBarActivity implements
 								.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 											public void onClick(DialogInterface dialog, int which) {
 												nicFragment.payFeeMonths = months;
+												if (accountState.equals("未开通"))
+													nicFragment.notOpened = true;
 												nicFragment.new NicTask(getActivity().getApplicationContext(), "payfee").execute();
 												dlg.dismiss();
 											}
@@ -1404,6 +1425,11 @@ public class MainActivity extends ActionBarActivity implements
 								.setIcon(android.R.drawable.ic_dialog_alert);
 						if (accountState.equals("正常")) {
 							builder.setMessage("您正在进行web认证服务缴纳月租费操作\n\n续租时长："
+									+ months + "个月   总计费用：" + months * 5
+									+ "元\n\n校园网账户扣除费用：" + months * 5
+									+ "元\n\n请注意：费用扣除后将不予以退还，是否继续执行此操作？");
+						} else if (accountState.equals("未开通")) {
+							builder.setMessage("您确认要开通\"web认证\"服务吗？(仅限已开通web认证服务的区域使用)\n\n开通时长："
 									+ months + "个月   总计费用：" + months * 5
 									+ "元\n\n校园网账户扣除费用：" + months * 5
 									+ "元\n\n请注意：费用扣除后将不予以退还，是否继续执行此操作？");
