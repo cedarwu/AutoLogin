@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="favicon.ico">
+
+    <title>Auto Login</title>
+
+    <link href="http://static.cedar.tk/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://static.cedar.tk/bootstrap/3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <link href="style.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <!-- Begin page content -->
+    <div class="container">
+      <div class="page-header">
+        <h2>seu-wlan Auto Login for Android&nbsp;&nbsp;&nbsp;&nbsp;<button class="btn" data-toggle="modal" data-target="#historyModal">更新历史</button>&nbsp;&nbsp;&nbsp;&nbsp;<button class="btn" data-toggle="modal" data-target="#aboutModal">关于</button></h2>
+      </div>
+      <!-- Modal -->
+      <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="myModalLabel">Auto Login by cedar</h4>
+            </div>
+            <div class="modal-body">
+              <br/>
+              <p>Author: cedar</p>
+              <p>Contact: cedarty@gmail.com</p>
+              <br/>
+              <p><a href = "http://bug.cedar.tk?site=autologin.cedar.tk" target="_blank">Bug report</a></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Modal -->
+      <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="myModalLabel">更新历史</h4>
+            </div>
+            <div class="modal-body">
+              <br/>
+              <p><a class="historyapk" href="apk/AutoLogin-2.2.apk">v2.2</a> 2014-10-9</p>
+              <p>"在线列表"中彩色显示当前设备</p>
+              <p>通知栏错误提醒</p>
+              <p>大量操作体验优化</p>
+              <p>各种错误修复</p>
+              <br/>
+              <p><a class="historyapk" href="apk/AutoLogin-2.1.apk">v2.1</a> 2014-9-14</p>
+              <p>支持选择SSID</p>
+              <br/>
+              <p><a class="historyapk" href="apk/AutoLogin-2.0.apk">v2.0</a> 2014-9-10</p>
+              <p>集成了web认证相关的常用nic功能</p>
+              <br/>
+              <p><a class="historyapk" href="apk/AutoLogin-1.2.apk">v1.2</a> 2014-7-18</p>
+              <p>修复Android 4.2之前getSSID()不包含引号产生的问题</p>
+              <br/>
+              <p><a class="historyapk" href="apk/AutoLogin-1.1.apk">v1.1</a> 2014-7-10</p>
+              <p>修复部分逻辑错误</p>
+              <br/>
+              <p><a class="historyapk" href="apk/AutoLogin-1.0.apk">v1.0</a> 2014-6-6</p>
+              <p>正式发布，支持自动登录，日志记录</p>
+              <br/>
+              <p><a href = "http://bug.cedar.tk?site=autologin.cedar.tk" target="_blank">Bug report</a></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="lead">当Android设备连接到seu-wlan之后，该应用会自动使用已保存的帐号进行登录。</a></p>
+      <p class="lead">AutoLogin v2.2 <small>(2014-10-9)</small> :&nbsp;&nbsp;&nbsp;&nbsp;<a id="link1" href="http://cedarfile-cedarfile.stor.sinaapp.com/Software/AutoLogin/AutoLogin-2.2.apk">下载地址</a>&nbsp;&nbsp;&nbsp;&nbsp;<a id="link2" href="apk/AutoLogin-2.2.apk">备用下载地址</a></p>
+      <p id="downcount"></p>
+      <blockquote>
+      <p>该应用只在东南大学校园内有效 !</p>
+      </blockquote>
+      <p>用法: 打开Auto Login，输入你的用户名和密码，点击保存即可。</p>
+      <p>由于条件所限，我只在 Nexus 5 / Android 4.4.4 和 Nexus 7 (2014) / Android 4.4.4 上测试正常，如果在其它Android设备上存在问题欢迎联系我。以下截图来自Nexus 5:</p>
+      <p><img alt="账号" src="http://autologin.cedar.tk/account.png" /> <img alt="NIC" src="http://autologin.cedar.tk/nic.png" /> <img alt="日志" src="http://autologin.cedar.tk/log.png" /></p>
+      <p>申明：该应用绝不会收集用户名和密码，该应用只与 w.seu.edu.cn 和 nic.seu.edu.cn 进行网络通信。所有代码放在<a href="https://github.com/cedarwu/AutoLogin">github</a>上，可自行下载编译。</p>
+      <p>注：用户名和密码明文保存在程序目录下，对此不放心的用户请谨慎使用。</p>
+      <p>注：我个人比较在意电量消耗，编写过程中也一直谨记不浪费电量，如果发现程序存在不正常的耗电现象，希望及时向我反馈。</p>
+      <p>如果发现程序存在问题或者有好的意见，欢迎参与讨论或者发邮件给我。</p>
+      <blockquote>
+      <p>我暂时不考虑开发ios版本，欢迎有兴趣的同学开发并分享。</p>
+      </blockquote>
+      <p>尾巴：本来只是自己的需求，闲暇时间写了自用的。写好之后发现也有其他同学存在相同的需求，于是就放出来了～在此鼓励分享，鼓励创新。</p>
+      <p>author: cedar</p>
+      <p>contact: <a href="mailto:cedarty@gmail.com">cedarty@gmail.com</a></p></article></body></html>
+      <br/>
+      <br/>
+      <div class="ds-thread" data-thread-key="autologin" data-title="AutoLogin" data-url="http://autologin.cedar.tk"></div>
+    </div>
+
+
+    <div id="footer">
+      <div class="container">
+        <p class="text-muted">A programmer with a piece of bread~~ @cedar</p>
+      </div>
+    </div>
+
+    <script src="http://static.cedar.tk/jquery/jquery-2.1.1.min.js"></script>
+    <script src="http://static.cedar.tk/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+      (function() {
+       var s = document.createElement('script');
+       s.type = 'text/javascript';
+       s.async = true;
+       s.src = 'script.js';
+       var x = document.getElementsByTagName('script')[0];
+       x.parentNode.insertBefore(s, x);
+      })();
+      var duoshuoQuery = {short_name:"autologin"};
+      (function() {
+        var ds = document.createElement('script');
+        ds.type = 'text/javascript';ds.async = true;
+        ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+        ds.charset = 'UTF-8';
+        (document.getElementsByTagName('head')[0] 
+         || document.getElementsByTagName('body')[0]).appendChild(ds);
+      })();
+      var _hmt = _hmt || [];
+      (function() {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?62462a139213fc0b4362c7b3b0b93409";
+        var s = document.getElementsByTagName("script")[0]; 
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+
+  </body>
+</html>
