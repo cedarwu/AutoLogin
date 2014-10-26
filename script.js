@@ -1,5 +1,5 @@
 
-$.get("http://counter.cedar.tk/autologin");
+$.get("http://counter.cedar.tk");
 $.get( "http://counter.cedar.tk/query/autologindownload", function( data ) {
 	console.log(data);
   	$( "#downcount" ).html( "下载次数：" + data );
