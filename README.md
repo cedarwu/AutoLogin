@@ -2,17 +2,17 @@
 
 ##### 当Android设备连接到seu-wlan之后，该应用会自动使用已保存的帐号登录Web认证。
 
-##### [AutoLogin](http://autologin.cedar.tk) v2.3 <small>(2014-11-12)</small> :&nbsp;&nbsp;&nbsp;&nbsp;[下载地址](http://cedarfile-cedarfile.stor.sinaapp.com/Software/AutoLogin/AutoLogin-2.3.apk)&nbsp;&nbsp;&nbsp;&nbsp;[备用下载地址](apk/AutoLogin-2.3.apk)
+##### [AutoLogin](http://autologin.cedar.tk) v3.0 <small>(2014-12-18)</small> :&nbsp;&nbsp;&nbsp;&nbsp;[下载地址](http://cedarfile-cedarfile.stor.sinaapp.com/Software/AutoLogin/AutoLogin-3.0.apk)&nbsp;&nbsp;&nbsp;&nbsp;[备用下载地址](apk/AutoLogin-3.0.apk)
 
 > 该应用只在东南大学校园内有效 !
 
 用法: 打开Auto Login，输入你的用户名和密码，点击保存即可。
 
-由于条件所限，我只在 Nexus 5 / Android 4.4.4 和 Nexus 7 (2014) / Android 4.4.4 上测试正常，如果在其它Android设备上存在问题欢迎联系我。如下截图来自Nexus 5:
+由于条件所限，我只在 Nexus 5 / Android 4.4.4 和 Nexus 7 (2014) / Android 5.0.1 上测试正常，如果在其它Android设备上存在问题欢迎联系我。如下截图来自Nexus 5:
 
-![账号](http://autologin.cedar.tk/account.png) ![NIC](http://autologin.cedar.tk/nic.png) ![日志](http://autologin.cedar.tk/log.png)
+![账号](http://autologin.cedar.tk/account.png) ![NIC](http://autologin.cedar.tk/nic.png) ![菜单](http://autologin.cedar.tk/menu.png)
 
-申明：该应用绝不会收集用户名和密码，该应用只与 w.seu.edu.cn 和 nic.seu.edu.cn 进行网络通信。所有代码放在[github](https://github.com/cedarwu/AutoLogin)上，可自行下载编译。
+申明：该应用绝不会收集用户名和密码，代码放在[github](https://github.com/cedarwu/AutoLogin)上，可自行下载编译。
 
 注：用户名和密码明文保存在程序目录下，对此不放心的用户请谨慎使用。
 
